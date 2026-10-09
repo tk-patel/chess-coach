@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 17b712b |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 7b2d0e2 |
-| T3.4 | Benchmark | T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T3.4 | Benchmark | T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 667e9c2 |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
 | T5.1 | Motif detectors + fixtures | T4.1 | | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T3.4 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)
-Commit: <filled by docs commit>
+Commit: 667e9c2
 What changed:
 - No source changes. Benchmarked `analyze_game` at the default depths on the six fixture games.
 How I verified:
