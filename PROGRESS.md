@@ -28,7 +28,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | b59ce8a |
 | T5.1 | Motif detectors + fixtures | T4.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 55f0536 |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
-| T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
 | T7.1 | stats.py | T4.2, T5.2 | | todo | | |
 | T7.2 | charts.py | T7.1 | | todo | | |
 | T7.3 | Report templates + command | T7.2 | | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T6.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)
-Commit: <filled by docs commit>
+Commit: 659083d
 What changed:
 - src/chesscoach/puzzles.py: `select_puzzles` (all §11 rules 1–6), `strip_internal` (documented export shape), `store_puzzles` (replaces the `puzzles` table), `export_puzzles`, `rebuild`; helpers `_puzzle_id` (sha1(EPD+solution)[:12]), `_line_san` (≤6 plies), `_date`, `_played_san`.
 - src/chesscoach/cli.py: `puzzles` command wired end-to-end.
