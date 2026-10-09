@@ -71,7 +71,31 @@ def download() -> None:
 @app.command()
 def fetch() -> None:
     """Download games from the chess.com API (incremental)."""
-    _stub("fetch")
+    from chesscoach.config import load_config, require_username
+    from chesscoach.fetch import FetchError, RequestsTransport, fetch_all
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+    require_username(config)
+    transport = RequestsTransport(config.fetch.user_agent)
+
+    db_path = root / "data" / "chesscoach.db"
+    conn = db.connect(db_path)
+    try:
+        db.migrate(conn)
+        try:
+            result = fetch_all(conn, config, transport, root / "data" / "raw")
+        except FetchError as exc:
+            typer.echo(f"error: {exc}", err=True)
+            raise typer.Exit(1) from exc
+    finally:
+        conn.close()
+
+    typer.echo(
+        f"fetched {result.inserted} games "
+        f"({result.filtered} filtered, {result.skipped_months} months skipped, "
+        f"{result.errors} errors)"
+    )
 
 
 @app.command("import")
