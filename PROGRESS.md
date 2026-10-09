@@ -22,7 +22,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 17b712b |
-| T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 7b2d0e2 |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
@@ -74,7 +74,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T3.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: 7b2d0e2
 What changed:
 - src/chesscoach/analyze.py: `run_batch` (§9 worker pool, `imap_unordered`, parent-only DB writes, commit per game), `_worker`, `_select_specs` (pending/pass1, `--since`/`--limit`), `_mark_short_games_skipped` (`min_plies`), `_reset_status` (`--reanalyze`), `_write_moves`. Games are marked `pass1` before running so a crash stays resumable; `book` triggers the T2.2 openings backfill.
 - src/chesscoach/cli.py: `analyze [--limit] [--since] [--reanalyze]` wired end-to-end with per-game progress.
