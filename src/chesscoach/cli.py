@@ -152,7 +152,32 @@ def analyze(
     reanalyze: Annotated[bool, typer.Option(help="Reset everything to pending first")] = False,
 ) -> None:
     """Analyze pending games with Stockfish (two passes)."""
-    _stub("analyze")
+    from chesscoach.analyze import run_batch
+    from chesscoach.config import load_config, require_engine
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+    require_engine(config)
+
+    conn = db.connect(root / "data" / "chesscoach.db")
+    try:
+        db.migrate(conn)
+        result = run_batch(
+            conn,
+            config,
+            book=_load_book(root),
+            limit=limit,
+            since=since,
+            reanalyze=reanalyze,
+            progress=typer.echo,
+        )
+    finally:
+        conn.close()
+
+    typer.echo(
+        f"analyzed {result.analyzed} games, {result.errors} errors, "
+        f"{result.skipped} skipped, {result.seconds:.1f}s"
+    )
 
 
 @app.command()

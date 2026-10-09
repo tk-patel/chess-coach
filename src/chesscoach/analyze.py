@@ -13,7 +13,11 @@ values.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import multiprocessing
+import sqlite3
+import time
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 
 import chess
 
@@ -28,7 +32,7 @@ from chesscoach.classify import (
 )
 from chesscoach.config import Config
 from chesscoach.engine import Engine
-from chesscoach.parse import ParsedGame
+from chesscoach.parse import ParsedGame, parse_game
 
 
 @dataclass
@@ -248,3 +252,183 @@ def analyze_game(
         pass1_depth=depths.pass1_depth,
         pass2_depth=depths.pass2_depth,
     )
+
+
+# --- Batch orchestration (§9, T3.3) ----------------------------------------
+
+_MOVE_COLUMNS = [
+    "ply", "color", "is_user", "san", "uci", "fen_before", "clock_after",
+    "time_spent", "cp_before", "mate_before", "cp_after", "mate_after",
+    "win_before", "win_after", "win_drop", "move_accuracy", "best_uci",
+    "best_san", "pv_uci", "multipv_json", "classification", "phase",
+    "low_clock", "motifs_json",
+]
+
+
+@dataclass
+class BatchResult:
+    analyzed: int = 0
+    errors: int = 0
+    skipped: int = 0
+    seconds: float = 0.0
+    engine_id: str | None = None
+
+
+def _coerce(value):
+    return int(value) if isinstance(value, bool) else value
+
+
+def _write_moves(conn: sqlite3.Connection, uuid: str, move_dicts: list[dict]) -> None:
+    """Replace a game's move rows with freshly analyzed ones."""
+    conn.execute("DELETE FROM moves WHERE game_uuid = ?", (uuid,))
+    columns = ", ".join(["game_uuid", *_MOVE_COLUMNS])
+    placeholders = ", ".join(["?"] * (len(_MOVE_COLUMNS) + 1))
+    sql = f"INSERT INTO moves ({columns}) VALUES ({placeholders})"
+    for move in move_dicts:
+        conn.execute(sql, [uuid, *(_coerce(move.get(col)) for col in _MOVE_COLUMNS)])
+
+
+def _worker(spec: dict) -> tuple:
+    """Analyze one game in a worker process. Returns (uuid, status, rows, engine_id, error)."""
+    try:
+        parsed = parse_game(spec["pgn"], spec["username"])
+        with Engine.from_config(spec["config"]) as engine:
+            analysis = analyze_game(
+                parsed, engine, spec["config"], spec["theory_exit_ply"]
+            )
+        rows = [asdict(move) for move in analysis.moves]
+        return (spec["uuid"], "done", rows, analysis.engine_id, None)
+    except Exception as exc:  # noqa: BLE001 - per-game isolation is the point
+        return (spec["uuid"], "error", None, None, f"{type(exc).__name__}: {exc}")
+
+
+def _multiprocessing_executor(config: Config):
+    workers = max(1, config.engine.workers)
+
+    def run(specs):
+        ctx = multiprocessing.get_context()
+        with ctx.Pool(workers) as pool:
+            yield from pool.imap_unordered(_worker, specs)
+
+    return run
+
+
+def _since_timestamp(since: str) -> int:
+    return int(datetime.strptime(since, "%Y-%m-%d").replace(tzinfo=UTC).timestamp())
+
+
+def _reset_status(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        "UPDATE games SET analysis_status = 'pending', analysis_error = NULL"
+    )
+    conn.commit()
+
+
+def _mark_short_games_skipped(conn: sqlite3.Connection, min_plies: int) -> int:
+    cursor = conn.execute(
+        "UPDATE games SET analysis_status = 'skipped'"
+        " WHERE ply_count < ? AND analysis_status IN ('pending', 'pass1')",
+        (min_plies,),
+    )
+    conn.commit()
+    return cursor.rowcount
+
+
+def _select_specs(
+    conn: sqlite3.Connection, config: Config, limit: int | None, since: str | None
+) -> list[dict]:
+    query = (
+        "SELECT uuid, pgn, user_color, theory_exit_ply FROM games"
+        " WHERE analysis_status IN ('pending', 'pass1')"
+    )
+    params: list = []
+    if since is not None:
+        query += " AND end_time >= ?"
+        params.append(_since_timestamp(since))
+    query += " ORDER BY end_time"
+    if limit is not None:
+        query += " LIMIT ?"
+        params.append(int(limit))
+
+    specs = []
+    for row in conn.execute(query, params):
+        specs.append(
+            {
+                "uuid": row["uuid"],
+                "pgn": row["pgn"],
+                "user_color": row["user_color"],
+                "theory_exit_ply": row["theory_exit_ply"],
+                "username": config.username,
+                "config": config,
+            }
+        )
+    return specs
+
+
+def run_batch(
+    conn: sqlite3.Connection,
+    config: Config,
+    *,
+    book=None,
+    limit: int | None = None,
+    since: str | None = None,
+    reanalyze: bool = False,
+    executor=None,
+    progress=None,
+) -> BatchResult:
+    """Analyze pending games with a worker pool, committing after each game.
+
+    The unit of work is one game; the parent process alone writes to SQLite.
+    `executor` (for tests) is a callable: `specs -> iterable of worker tuples`.
+    """
+    from chesscoach.openings import backfill_openings
+
+    started = time.monotonic()
+    result = BatchResult()
+
+    if reanalyze:
+        _reset_status(conn)
+
+    if book is not None and bool(book):
+        backfill_openings(conn, book)
+
+    result.skipped = _mark_short_games_skipped(conn, config.analysis.min_plies)
+
+    specs = _select_specs(conn, config, limit, since)
+    if not specs:
+        result.seconds = time.monotonic() - started
+        return result
+
+    # Mark everything in flight as pass1 so a crash leaves it resumable.
+    conn.executemany(
+        "UPDATE games SET analysis_status = 'pass1' WHERE uuid = ?",
+        [(spec["uuid"],) for spec in specs],
+    )
+    conn.commit()
+
+    run = executor if executor is not None else _multiprocessing_executor(config)
+    total = len(specs)
+    for done, item in enumerate(run(specs), start=1):
+        uuid, status, rows, engine_id, error = item
+        if status == "done":
+            _write_moves(conn, uuid, rows)
+            conn.execute(
+                "UPDATE games SET analysis_status = 'done', analysis_error = NULL,"
+                " engine_id = ?, pass1_depth = ?, pass2_depth = ? WHERE uuid = ?",
+                (engine_id, config.engine.pass1_depth, config.engine.pass2_depth, uuid),
+            )
+            result.analyzed += 1
+            result.engine_id = engine_id
+        else:
+            conn.execute(
+                "UPDATE games SET analysis_status = 'error', analysis_error = ?"
+                " WHERE uuid = ?",
+                (error, uuid),
+            )
+            result.errors += 1
+        conn.commit()
+        if progress is not None:
+            progress(f"[{done}/{total}] {uuid} {status}")
+
+    result.seconds = time.monotonic() - started
+    return result

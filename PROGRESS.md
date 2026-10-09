@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T3.3 Batch analysis, workers, resume
+- **Next task:** T3.4 Benchmark (GATE)
 - T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
 
 ## Task board
@@ -22,7 +22,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 17b712b |
-| T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
+| T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
@@ -40,7 +40,7 @@ Tasks that can run in parallel once their deps are done: T2.1, T3.1 and T4.1 dep
 the foundation and are good tasks for trying different models side by side.
 
 ## Open questions (owner answers here)
-- **Q1** chess.com username → goes in `config.toml` (never commit it). Answer:
+- **Q1** chess.com username → goes in `config.toml` (never commit it). Answer: **set** (config.toml, gitignored)
 - **Q2** Which time classes count? Default: bullet, blitz, rapid, daily. Answer:
 - **Q3** Where will analysis run? Default: the Ubuntu home server; note its CPU core count for `workers`. Answer:
 
@@ -71,6 +71,21 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T3.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/analyze.py: `run_batch` (§9 worker pool, `imap_unordered`, parent-only DB writes, commit per game), `_worker`, `_select_specs` (pending/pass1, `--since`/`--limit`), `_mark_short_games_skipped` (`min_plies`), `_reset_status` (`--reanalyze`), `_write_moves`. Games are marked `pass1` before running so a crash stays resumable; `book` triggers the T2.2 openings backfill.
+- src/chesscoach/cli.py: `analyze [--limit] [--since] [--reanalyze]` wired end-to-end with per-game progress.
+- tests/test_batch.py: resume-after-crash (injected crashing executor → only the unfinished game re-analyzed), per-game error recording, short-game skip, limit/oldest-first.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "101 passed in 10.32s" (5 new batch tests)
+- CLI e2e: `python -m chesscoach analyze --limit 1` on an imported game → 33 moves stored, status done, engine "Stockfish 17.1". Scratch run (min_plies=4) on a user game → user move g4 classified `blunder` (win_drop 43.5) with multipv, opponent ply left NULL — classification path confirmed end-to-end.
+Deviations from PLAN: none
+Known issues / follow-ups: the repo-root DB game is a PaulMorphy fixture, so its user moves are all NULL (the configured user is not in it) — correct behaviour, not a bug. `backfill_openings` now runs inside `analyze`.
+Next task: T3.4 (Benchmark, GATE)
 
 ### T3.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
