@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T3.1 Engine wrapper
+- **Next task:** T4.1 classify.py (done before T3.2 — see D5)
 - T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
 
 ## Task board
@@ -20,7 +20,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
-| T3.1 | Engine wrapper | T0.2 | | todo | | |
+| T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
@@ -51,6 +51,7 @@ the foundation and are good tasks for trying different models side by side.
 - D2 | 2026-10-09 | plan | Two-pass engine analysis (d14 all plies, d18 multipv3 on candidates) | ~5–10× cheaper than deep analysis on every ply
 - D3 | 2026-10-09 | T0.3 | Fixtures use well-known public games (Opera, Legall's, Fool's, Hamppe–Meitner, Scholar's, Blackburne Shilling); %clk comments, Elo, dates, ECO URLs and termination headers are synthesized for test coverage | Historical games have no clocks/ratings and no chess.com-style headers; no human-supplied exports were available
 - D4 | 2026-10-09 | T2.1 | ECOUrl-slug fallback expands hyphens naively (`Caro-Kann-Defense-Advance-Variation` → `Caro Kann Defense Advance Variation`), losing the internal hyphen of "Caro-Kann" | The slug is lossy (colons and intra-word hyphens are indistinguishable); PLAN §7.2's example output is not recoverable from the slug. Fallback only used when the TSVs are absent; the T2.1 AC (EPD path) is unaffected
+- D5 | 2026-10-09 | T3.2 | Implement classify.py (T4.1) before analyze.py (T3.2), i.e. slightly out of board order | T3.2 stores win_before/win_after/win_drop (§8.2/8.3) which are the canonical classify.py math; doing T4.1 first avoids duplicating the win% formula. T4.1's only dep (T0.1) is already done
 
 ## Blockers
 (none yet)
@@ -70,6 +71,19 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T3.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/engine.py: `EngineLine` dataclass and `Engine` (context manager; `from_config`; `id_name`; `evaluate(board, depth, multipv, pov)`). Scores normalized to the requested POV and cp clamped to ±1000 per §8.1; PV capped at 10 plies.
+- tests/test_engine.py: start-position eval within ±100cp, mate-in-1 → mate=1, POV sign, multipv ranking, id name. All marked `engine`.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "78 passed in 1.22s" (6 engine tests ran against Stockfish 17.1 at /usr/games/stockfish, none skipped)
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T4.1 (classify.py) then T3.2 (see D5)
 
 ### T2.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
