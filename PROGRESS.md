@@ -24,7 +24,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
-| T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
 | T5.1 | Motif detectors + fixtures | T4.1 | | todo | | |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | todo | | |
@@ -74,7 +74,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T4.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: bee4581
 What changed:
 - src/chesscoach/classify.py: pure §8.2–§8.8 — `win_percentage`, `win_drop`, `move_accuracy`, `game_accuracy`, `classify_move` (both §8.5 caps), `non_pawn_material`, `phase`, `low_clock`, `failed_conversion`, `saved_game`.
 - tests/test_classify.py: win anchors (0/±1000 + mate), drop floor, accuracy anchors (drop 0≈100, drop 30≈24.78), every class boundary, both exceptions, phase boundaries, low_clock thresholds, conversion/saved flags.
