@@ -27,7 +27,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | b59ce8a |
 | T5.1 | Motif detectors + fixtures | T4.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 55f0536 |
-| T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | todo | | |
 | T7.1 | stats.py | T4.2, T5.2 | | todo | | |
 | T7.2 | charts.py | T7.1 | | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T5.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: 963b801
 What changed:
 - src/chesscoach/analyze.py: `AnalyzedMove.motifs_json` field; pass 2 now captures the post-move PV as `reply_pv` and calls `detect_motifs` for user moves classified inaccuracy/mistake/blunder (§10). Only those qualify.
 - tests/test_analyze.py: every inaccuracy-or-worse user move has a non-empty motifs list; opponent plies have none.
