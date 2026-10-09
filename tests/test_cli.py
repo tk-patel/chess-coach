@@ -10,7 +10,7 @@ runner = CliRunner()
 
 COMMANDS = ("init", "status", "fetch", "import", "analyze", "puzzles", "report", "update")
 
-STUBS = ("status", "puzzles", "report", "update")
+STUBS = ("status", "report", "update")
 
 
 def test_help_lists_all_commands():
@@ -56,3 +56,13 @@ def test_import_command_end_to_end(tmp_path, monkeypatch):
     assert second.exit_code == 0, second.output
     assert "imported 0 games" in second.output
     assert "skipped 1 existing" in second.output
+
+
+def test_puzzles_command_end_to_end(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert runner.invoke(app, ["init"]).exit_code == 0
+
+    result = runner.invoke(app, ["puzzles"])
+    assert result.exit_code == 0, result.output
+    assert "built 0 puzzles" in result.output
+    assert (tmp_path / "out" / "puzzles.json").exists()

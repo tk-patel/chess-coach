@@ -183,7 +183,20 @@ def analyze(
 @app.command()
 def puzzles() -> None:
     """Rebuild the puzzles table and out/puzzles.json."""
-    _stub("puzzles")
+    from chesscoach.config import load_config
+    from chesscoach.puzzles import rebuild
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+
+    conn = db.connect(root / "data" / "chesscoach.db")
+    try:
+        db.migrate(conn)
+        count = rebuild(conn, config, root / "out" / "puzzles.json")
+    finally:
+        conn.close()
+
+    typer.echo(f"built {count} puzzles -> out/puzzles.json")
 
 
 @app.command()

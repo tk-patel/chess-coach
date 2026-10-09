@@ -5,8 +5,8 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T6.1 Puzzle selection + export (GATE)
-- T1.3, T3.4, T4.2 are **GATE**s awaiting owner review.
+- **Next task:** T7.1 stats.py
+- GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1.
 
 ## Task board
 
@@ -28,7 +28,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | b59ce8a |
 | T5.1 | Motif detectors + fixtures | T4.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 55f0536 |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
-| T6.1 | Puzzle selection + export | T5.2 | GATE | todo | | |
+| T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T7.1 | stats.py | T4.2, T5.2 | | todo | | |
 | T7.2 | charts.py | T7.1 | | todo | | |
 | T7.3 | Report templates + command | T7.2 | | todo | | |
@@ -72,6 +72,21 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T6.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: review (GATE)
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/puzzles.py: `select_puzzles` (all §11 rules 1–6), `strip_internal` (documented export shape), `store_puzzles` (replaces the `puzzles` table), `export_puzzles`, `rebuild`; helpers `_puzzle_id` (sha1(EPD+solution)[:12]), `_line_san` (≤6 plies), `_date`, `_played_san`.
+- src/chesscoach/cli.py: `puzzles` command wired end-to-end.
+- tests/test_puzzles.py: each selection rule (min_drop, min_best_winpct, multipv required, played-accepted exclusion, multi_answer), dedupe (kept newest + seen_count), export shape/order, DB store.
+- tests/test_cli.py: `puzzles` CLI smoke test.
+How I verified:
+- `ruff check .` → "All checks passed!"; `pytest -q` → "188 passed in 15.08s".
+- Scratch e2e `python -m chesscoach puzzles` on the analyzed user game → `built 1 puzzles`; out/puzzles.json has 1 record with the documented keys, `played_san "g4??"`, `accepted ["b1c3","e2e3","e2e4"]` (all within 3 win%), `solution_san "Nc3"`, `line_san "Nc3 Nc6 e4 Nf6 Bc4 Nd4"`, `motifs ["allowed_mate"]`, `multi_answer true`. The played move is not in `accepted`.
+Deviations from PLAN: exported JSON omits an internal `solution_uci` key to match the documented §11 shape exactly (kept in the DB table).
+Known issues / follow-ups: GATE — orchestrator sanity-check on real games.
+Next task: T7.1 (stats.py)
 
 ### T5.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
