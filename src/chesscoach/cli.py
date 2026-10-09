@@ -65,7 +65,22 @@ def status() -> None:
 @openings_app.command()
 def download() -> None:
     """Fetch the lichess openings TSVs into data/openings/."""
-    _stub("openings download")
+    from chesscoach.config import load_config
+    from chesscoach.fetch import RequestsTransport
+    from chesscoach.openings import OpeningsError, download_openings
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+    transport = RequestsTransport(config.fetch.user_agent)
+    dest = root / "data" / "openings"
+
+    try:
+        written = download_openings(dest, transport)
+    except OpeningsError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"downloaded {len(written)} openings files into {dest}")
 
 
 @app.command()

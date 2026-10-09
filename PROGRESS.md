@@ -5,8 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T2.1 Openings DB
-- **Owner decisions needed before M1:** see Open questions Q1–Q3.
+- **Next task:** T2.2 Annotate games with openings
 - T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
 
 ## Task board
@@ -19,7 +18,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
-| T2.1 | Openings DB | T0.2 | | todo | | |
+| T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
 | T3.1 | Engine wrapper | T0.2 | | todo | | |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
@@ -51,6 +50,7 @@ the foundation and are good tasks for trying different models side by side.
 - D1 | 2026-10-09 | plan | Static HTML + localStorage trainer, no server in v1 | Zero ops; export/import covers device moves
 - D2 | 2026-10-09 | plan | Two-pass engine analysis (d14 all plies, d18 multipv3 on candidates) | ~5–10× cheaper than deep analysis on every ply
 - D3 | 2026-10-09 | T0.3 | Fixtures use well-known public games (Opera, Legall's, Fool's, Hamppe–Meitner, Scholar's, Blackburne Shilling); %clk comments, Elo, dates, ECO URLs and termination headers are synthesized for test coverage | Historical games have no clocks/ratings and no chess.com-style headers; no human-supplied exports were available
+- D4 | 2026-10-09 | T2.1 | ECOUrl-slug fallback expands hyphens naively (`Caro-Kann-Defense-Advance-Variation` → `Caro Kann Defense Advance Variation`), losing the internal hyphen of "Caro-Kann" | The slug is lossy (colons and intra-word hyphens are indistinguishable); PLAN §7.2's example output is not recoverable from the slug. Fallback only used when the TSVs are absent; the T2.1 AC (EPD path) is unaffected
 
 ## Blockers
 (none yet)
@@ -70,6 +70,22 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T2.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/openings.py: `epd_of`, `opening_family`, `load_openings` (replays lichess TSVs; longest line reaching an EPD wins), `OpeningBook` (`from_dir`/`name_for_epd`), `eco_name_from_headers` fallback (§7.2), and `download_openings` (via the injectable `Transport`; `OpeningsError` prints manual-download instructions if blocked).
+- src/chesscoach/cli.py: `openings download` wired end-to-end.
+- tests/fixtures/openings_sample.tsv: real lichess lines (Caro-Kann, Najdorf, etc.) for the EPD tests.
+- tests/test_openings.py: Caro-Kann-Advance resolution (the T2.1 AC), longest-line-wins, deeper-variation, out-of-book, from_dir/empty dir, family, header fallback, download + error.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "65 passed in 0.40s" (10 new openings tests)
+- `python -m chesscoach openings download` (real network) → downloaded 5 files (a/b/c/d/e.tsv, 395 KB) into data/openings; `OpeningBook.from_dir` → 7982 EPDs; `1.e4 c6 2.d4 d5 3.e5` → `('B12', 'Caro-Kann Defense: Advance Variation')`.
+Deviations from PLAN: header-fallback hyphen handling (see D4)
+Known issues / follow-ups: none
+Next task: T2.2 (Annotate games with openings)
 
 ### T1.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE — needs a human real-fetch run)

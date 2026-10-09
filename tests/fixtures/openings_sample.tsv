@@ -1,0 +1,13 @@
+eco	name	pgn
+B00	Barnes Defense	1. e4 f6
+A00	Amar Opening	1. Nh3
+A00	Amar Opening: Paris Gambit	1. Nh3 d5 2. g3 e5 3. f4
+C50	Italian Game	1. e4 e5 2. Nf3 Nc6 3. Bc4
+C60	Ruy Lopez	1. e4 e5 2. Nf3 Nc6 3. Bb5
+D06	Queen's Gambit	1. d4 d5 2. c4
+D06	Queen's Gambit Declined: Austrian Defense	1. d4 d5 2. c4 c5
+A45	Indian Defense	1. d4 Nf6
+B12	Caro-Kann Defense: Advance Variation	1. e4 c6 2. d4 d5 3. e5
+B12	Caro-Kann Defense: Advance Variation, Bayonet Attack	1. e4 c6 2. d4 d5 3. e5 Bf5 4. g4
+B90	Sicilian Defense: Najdorf Variation	1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6
+B90	Sicilian Defense: Najdorf Variation, English Attack	1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be3
