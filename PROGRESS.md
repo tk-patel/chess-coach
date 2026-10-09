@@ -15,7 +15,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T0.1 | Scaffold | – | | done | Cody (deepseek-v4-pro) 2026-10-09 | 649a0a6 |
 | T0.2 | Config + DB | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5700247 |
 | T0.3 | Fixtures | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 976e731 |
-| T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | |
+| T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
 | T1.2 | PGN import command | T1.1 | | todo | | |
 | T1.3 | chess.com fetch | T1.1 | GATE | todo | | |
 | T2.1 | Openings DB | T0.2 | | todo | | |
@@ -72,7 +72,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T1.1 handoff — Cody (deepseek-v4-pro) — 2026-10-09
 Status: done
-Commit: (below)
+Commit: 0325998
 What changed:
 - src/chesscoach/parse.py: pure PGN parsing. `parse_time_control`, `result_code_to_result` (§7.1), `user_result_from_pgn`, `detect_user_color` (case-insensitive), `time_class_from_control`, `parse_end_time`, and `parse_game` -> `ParsedGame` + `ParsedMove` (ply/color/is_user/san/uci/fen_before/clock_after/time_spent per §8.6).
 - tests/test_parse.py: unit tests for time controls, every §7.1 result code, increment-aware time_spent, color detection, and full-game parsing against the fixtures.
