@@ -18,7 +18,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T0.3 | Fixtures | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 976e731 |
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
-| T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | todo | | |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
 | T3.1 | Engine wrapper | T0.2 | | todo | | |
@@ -73,7 +73,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T1.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE — needs a human real-fetch run)
-Commit: <filled by docs commit>
+Commit: e6f046e
 What changed:
 - src/chesscoach/fetch.py: `Transport`/`RequestsTransport` (all HTTP behind an injectable interface), `fetch_archive_list`, `_get_with_retry` (429 backoff 1/2/4/8/16, max 5), `fetch_all` (incremental: past months skipped once stored, newest month always re-fetched, ETag/Last-Modified → 304 short-circuit, raw JSON saved to `data/raw/{YYYY}-{MM}.json` before parse), `_insert_month` applying the §7.1 filters (rules, time_classes, rated_only, user present).
 - src/chesscoach/cli.py: `fetch` wired to load config, require the username, migrate, and run the real `RequestsTransport`.
