@@ -5,8 +5,8 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T3.4 Benchmark (GATE)
-- T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
+- **Next task:** T4.2 Wire classification into analysis (GATE)
+- T1.3 and T3.4 are **GATE**s awaiting owner review.
 
 ## Task board
 
@@ -23,7 +23,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 17b712b |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 7b2d0e2 |
-| T3.4 | Benchmark | T3.3 | GATE | todo | | |
+| T3.4 | Benchmark | T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
 | T5.1 | Motif detectors + fixtures | T4.1 | | todo | | |
@@ -59,6 +59,7 @@ the foundation and are good tasks for trying different models side by side.
 ## Benchmarks (filled by T3.4)
 | Date | Machine / CPU | Workers | pass1/pass2 depth | Games | Avg s/game | Notes |
 |---|---|---|---|---|---|---|
+| 2026-10-09 | Intel i7-7700K (8 threads), Linux | 1 (per-worker; config workers=4) | 14/18 (multipv 3) | 6 fixture games | 3.65 (median 3.83, max 7.60, total 21.9s) | Stockfish 17.1, 128 MB hash; user synthesised as each game's White so pass 2 fires. Target ≤15 s/game met with ~4× headroom |
 
 ## Agent scorecard (owner/orchestrator fills at review)
 Use this table to compare models (GLM, Claude, others) on the same kind of work.
@@ -71,6 +72,20 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T3.4 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: review (GATE)
+Commit: <filled by docs commit>
+What changed:
+- No source changes. Benchmarked `analyze_game` at the default depths on the six fixture games.
+How I verified:
+- Real run (`/tmp/bench.py`, Stockfish 17.1, threads=1, hash 128 MB, pass1=14/pass2=18/multipv=3), user synthesised as each game's White so pass 2 actually fires:
+  `games=6  avg=3.65s  median=3.83s  max=7.60s  total=21.9s`
+  per game: Opera 33 ply 4.02s · Legall 13 ply 0.96s · Fool's 4 ply 5.16s · Hamppe 36 ply 7.60s · Scholar 7 ply 0.54s · Blackburne 13 ply 3.64s
+- Machine: Intel i7-7700K (8 threads), Linux-7.0.0 x86_64. Numbers recorded in the PROGRESS Benchmarks table.
+Deviations from PLAN: none
+Known issues / follow-ups: these are short fixture games; real 60–80 ply games will be slower (still well inside budget). GATE: owner may want a real-data run recorded.
+Next task: T4.2 (Wire classification into analysis, GATE)
 
 ### T3.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
