@@ -20,7 +20,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
-| T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
@@ -74,7 +74,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T3.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: 3a8f0b5
 What changed:
 - src/chesscoach/engine.py: `EngineLine` dataclass and `Engine` (context manager; `from_config`; `id_name`; `evaluate(board, depth, multipv, pov)`). Scores normalized to the requested POV and cp clamped to ±1000 per §8.1; PV capped at 10 plies.
 - tests/test_engine.py: start-position eval within ±100cp, mate-in-1 → mate=1, POV sign, multipv ranking, id name. All marked `engine`.
