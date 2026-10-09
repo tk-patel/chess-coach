@@ -14,6 +14,7 @@ from pathlib import Path
 import chess
 import chess.pgn
 
+from chesscoach.openings import OpeningBook, annotate_pgn
 from chesscoach.parse import parse_game
 
 
@@ -29,8 +30,9 @@ _GAME_INSERT = """
     INSERT OR IGNORE INTO games (
         uuid, url, source, end_time, time_class, time_control,
         base_seconds, increment_seconds, rated, user_color, user_rating,
-        opp_rating, opp_username, result, termination, eco, ply_count, pgn
-    ) VALUES (?, ?, 'pgn', ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        opp_rating, opp_username, result, termination, eco, ply_count, pgn,
+        opening_name, opening_family, theory_exit_ply
+    ) VALUES (?, ?, 'pgn', ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 _MOVE_INSERT = """
@@ -53,9 +55,16 @@ def compute_uuid(game: chess.pgn.Game) -> str:
 
 
 def import_pgn_file(
-    conn: sqlite3.Connection, path: str | Path, username: str
+    conn: sqlite3.Connection,
+    path: str | Path,
+    username: str,
+    book: OpeningBook | None = None,
 ) -> ImportResult:
-    """Import every game in `path` where `username` plays a side."""
+    """Import every game in `path` where `username` plays a side.
+
+    When `book` is given, opening columns (name/family/theory-exit) are filled
+    from it (§7.2/§8.9); otherwise the PGN `ECO`/`ECOUrl` header fallback is used.
+    """
     result = ImportResult()
 
     with open(path) as f:
@@ -70,6 +79,8 @@ def import_pgn_file(
             if parsed.user_color is None:
                 result.skipped_no_user += 1
                 continue
+
+            ann = annotate_pgn(pgn_text, book)
 
             uuid = compute_uuid(game)
             cursor = conn.execute(
@@ -88,9 +99,12 @@ def import_pgn_file(
                     parsed.opp_username,
                     parsed.result,
                     parsed.termination,
-                    parsed.eco,
+                    ann.eco if ann.eco is not None else parsed.eco,
                     parsed.ply_count,
                     pgn_text,
+                    ann.name,
+                    ann.family,
+                    ann.theory_exit_ply,
                 ),
             )
             if cursor.rowcount == 0:

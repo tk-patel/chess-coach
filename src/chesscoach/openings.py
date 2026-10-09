@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import io
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 
 import chess
@@ -145,3 +146,70 @@ def _manual_instructions(dest: Path) -> str:
         "could not download the lichess openings TSVs (network blocked?).\n"
         f"Download these five files into {dest}:\n{urls}"
     )
+
+
+@dataclass
+class OpeningAnnotation:
+    """Result of annotating one game's opening (§8.9)."""
+
+    eco: str | None
+    name: str | None
+    family: str | None
+    theory_exit_ply: int | None
+
+
+def annotate_pgn(pgn_text: str, book: OpeningBook | None = None) -> OpeningAnnotation:
+    """Replay a game and annotate its opening, per PLAN.md §8.9.
+
+    `theory_exit_ply` is the first ply whose resulting position is *not* in the
+    openings book (`1` when even the first move is out of book, `None` when the
+    whole game stays in book). The name is that of the last in-book position;
+    when nothing is in book we fall back to the PGN `ECO`/`ECOUrl` headers.
+    """
+    game = chess.pgn.read_game(io.StringIO(pgn_text))
+    if game is None:
+        return OpeningAnnotation(None, None, None, None)
+
+    headers = game.headers
+    board = game.board()
+    node = game
+    ply = 0
+    last_eco: str | None = None
+    last_name: str | None = None
+    exit_ply: int | None = None
+
+    while node.variations:
+        node = node.variation(0)
+        board.push(node.move)
+        ply += 1
+        hit = book.name_for_epd(epd_of(board.fen())) if book else None
+        if hit is not None:
+            last_eco, last_name = hit
+        else:
+            exit_ply = ply
+            break
+
+    if last_name is None:
+        # Out of book from the first move (or no book at all): header fallback.
+        eco, name = eco_name_from_headers(headers)
+        if name is None:
+            return OpeningAnnotation(eco, None, None, 1 if ply >= 1 else None)
+        return OpeningAnnotation(eco, name, opening_family(name), 1)
+
+    return OpeningAnnotation(last_eco, last_name, opening_family(last_name), exit_ply)
+
+
+def backfill_openings(conn, book: OpeningBook) -> int:
+    """Recompute opening columns for every game in the DB; returns rows updated."""
+    rows = conn.execute("SELECT uuid, pgn FROM games").fetchall()
+    updated = 0
+    for row in rows:
+        ann = annotate_pgn(row["pgn"], book)
+        conn.execute(
+            "UPDATE games SET eco = ?, opening_name = ?, opening_family = ?,"
+            " theory_exit_ply = ? WHERE uuid = ?",
+            (ann.eco, ann.name, ann.family, ann.theory_exit_ply, row["uuid"]),
+        )
+        updated += 1
+    conn.commit()
+    return updated

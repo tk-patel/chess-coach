@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from chesscoach.config import Config
+from chesscoach.openings import OpeningBook, annotate_pgn
 from chesscoach.parse import (
     detect_user_color,
     parse_game,
@@ -74,8 +75,9 @@ _GAME_INSERT = """
     INSERT OR IGNORE INTO games (
         uuid, url, source, end_time, time_class, time_control,
         base_seconds, increment_seconds, rated, user_color, user_rating,
-        opp_rating, opp_username, result, termination, eco, ply_count, pgn
-    ) VALUES (?, ?, 'api', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        opp_rating, opp_username, result, termination, eco, ply_count, pgn,
+        opening_name, opening_family, theory_exit_ply
+    ) VALUES (?, ?, 'api', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
 _MOVE_INSERT = """
@@ -112,7 +114,10 @@ def _get_with_retry(transport: Transport, url: str, headers: dict[str, str]) -> 
 
 
 def _insert_month(
-    conn: sqlite3.Connection, games: list[dict], config: Config
+    conn: sqlite3.Connection,
+    games: list[dict],
+    config: Config,
+    book: OpeningBook | None = None,
 ) -> tuple[int, int]:
     """Insert a month's games, applying the §7.1 filters. Returns (inserted, filtered)."""
     inserted = 0
@@ -154,6 +159,7 @@ def _insert_month(
 
         pgn_text = g.get("pgn") or ""
         parsed = parse_game(pgn_text, config.username)
+        ann = annotate_pgn(pgn_text, book)
         base, inc = parse_time_control(g.get("time_control") or "")
 
         user_rating = white.get("rating") if user_color == "white" else black.get("rating")
@@ -178,9 +184,12 @@ def _insert_month(
                 opp_username or None,
                 result,
                 termination,
-                parsed.eco,
+                ann.eco if ann.eco is not None else parsed.eco,
                 parsed.ply_count,
                 pgn_text,
+                ann.name,
+                ann.family,
+                ann.theory_exit_ply,
             ),
         )
         if cursor.rowcount == 0:
@@ -207,7 +216,11 @@ def _insert_month(
 
 
 def fetch_all(
-    conn: sqlite3.Connection, config: Config, transport: Transport, raw_dir: str | Path
+    conn: sqlite3.Connection,
+    config: Config,
+    transport: Transport,
+    raw_dir: str | Path,
+    book: OpeningBook | None = None,
 ) -> FetchResult:
     """Fetch every archive month incrementally, saving raw JSON to `raw_dir`."""
     raw_dir = Path(raw_dir)
@@ -247,7 +260,7 @@ def fetch_all(
         (raw_dir / f"{month}.json").write_text(json.dumps(resp.json_data), encoding="utf-8")
 
         games = resp.json_data.get("games", [])
-        inserted, filtered = _insert_month(conn, games, config)
+        inserted, filtered = _insert_month(conn, games, config, book)
         result.inserted += inserted
         result.filtered += filtered
 

@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T2.2 Annotate games with openings
+- **Next task:** T3.1 Engine wrapper
 - T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
 
 ## Task board
@@ -19,7 +19,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
-| T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
+| T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T3.1 | Engine wrapper | T0.2 | | todo | | |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
@@ -70,6 +70,23 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T2.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/openings.py: `OpeningAnnotation` + `annotate_pgn` (§8.9 theory-exit replay, header fallback) + `backfill_openings(conn, book)`.
+- src/chesscoach/importer.py: `import_pgn_file` takes an optional `book` and stores opening_name/family/theory_exit_ply.
+- src/chesscoach/fetch.py: `fetch_all`/`_insert_month` take an optional `book`; same columns stored.
+- src/chesscoach/cli.py: `_load_book(root)` helper; `import` and `fetch` now annotate from data/openings.
+- tests/test_openings.py: theory-exit-on-deviation (exit ply 6), whole-game-in-book (NULL exit), ply-1 header fallback, no-book/no-header, empty PGN, backfill, import-with-book.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "72 passed in 0.43s" (7 new tests)
+- `python -m chesscoach import tests/fixtures/sample_games.pgn` (real book) → Opera Game row: opening_name "Philidor Defense: Albin-Blackburne Gambit", family "Philidor Defense", eco C41, theory_exit_ply 8.
+Deviations from PLAN: none
+Known issues / follow-ups: `backfill_openings` is implemented+tested but not yet *called* by the `analyze` command (still a stub until T3.3); will be invoked there.
+Next task: T3.1 (Engine wrapper)
 
 ### T2.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done

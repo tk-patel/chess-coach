@@ -28,6 +28,13 @@ def _example_config_path() -> Path:
     return Path(__file__).resolve().parents[2] / "config.example.toml"
 
 
+def _load_book(root: Path):
+    """Load the openings book from data/openings (empty if not downloaded)."""
+    from chesscoach.openings import OpeningBook
+
+    return OpeningBook.from_dir(root / "data" / "openings")
+
+
 @app.command()
 def init() -> None:
     """Create data/, out/, the SQLite DB, and config.toml if missing."""
@@ -99,7 +106,7 @@ def fetch() -> None:
     try:
         db.migrate(conn)
         try:
-            result = fetch_all(conn, config, transport, root / "data" / "raw")
+            result = fetch_all(conn, config, transport, root / "data" / "raw", _load_book(root))
         except FetchError as exc:
             typer.echo(f"error: {exc}", err=True)
             raise typer.Exit(1) from exc
@@ -127,7 +134,7 @@ def import_(file: Annotated[str, typer.Argument(help="Path to a PGN file")]) -> 
     conn = db.connect(db_path)
     try:
         db.migrate(conn)
-        result = import_pgn_file(conn, Path(file), username)
+        result = import_pgn_file(conn, Path(file), username, _load_book(root))
     finally:
         conn.close()
 

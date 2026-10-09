@@ -4,10 +4,14 @@ from pathlib import Path
 
 import chess
 
+from chesscoach.db import connect, migrate
 from chesscoach.fetch import Response, Transport
+from chesscoach.importer import import_pgn_file
 from chesscoach.openings import (
     OpeningBook,
     OpeningsError,
+    annotate_pgn,
+    backfill_openings,
     download_openings,
     eco_name_from_headers,
     epd_of,
@@ -129,3 +133,89 @@ def test_download_openings_error_has_instructions(tmp_path):
     except OpeningsError as exc:
         assert str(tmp_path) in str(exc)
         assert "a.tsv" in str(exc) or "raw.githubusercontent" in str(exc)
+
+
+# --- T2.2 annotation -------------------------------------------------------
+
+
+def _pgn(moves: str, result: str = "*", **headers: str) -> str:
+    base = {"Event": "Test", "White": "A", "Black": "B", "Result": result}
+    base.update(headers)
+    tag = "\n".join(f'[{k} "{v}"]' for k, v in base.items())
+    return f"{tag}\n\n{moves} {result}\n"
+
+
+def test_annotate_theory_exit_on_deviation():
+    book = OpeningBook(load_openings([SAMPLE]))
+    pgn = _pgn("1. e4 c6 2. d4 d5 3. e5 e6")
+    ann = annotate_pgn(pgn, book)
+    assert ann.theory_exit_ply == 6  # 3...e6 leaves the known Caro-Kann lines
+    assert ann.name == "Caro-Kann Defense: Advance Variation"
+    assert ann.family == "Caro-Kann Defense"
+    assert ann.eco == "B12"
+
+
+def test_annotate_whole_game_in_book_has_null_exit():
+    book = OpeningBook(load_openings([SAMPLE]))
+    ann = annotate_pgn(_pgn("1. e4 c6 2. d4 d5 3. e5"), book)
+    assert ann.theory_exit_ply is None
+    assert ann.name == "Caro-Kann Defense: Advance Variation"
+
+
+def test_annotate_out_of_book_ply1_uses_header_fallback():
+    book = OpeningBook(load_openings([SAMPLE]))
+    pgn = _pgn(
+        "1. a3 e5",
+        ECO="A00",
+        ECOUrl="https://www.chess.com/openings/Amar-Opening",
+    )
+    ann = annotate_pgn(pgn, book)
+    assert ann.theory_exit_ply == 1
+    assert ann.eco == "A00"
+    assert ann.name == "Amar Opening"
+    assert ann.family == "Amar Opening"
+
+
+def test_annotate_no_book_no_headers():
+    ann = annotate_pgn(_pgn("1. a3 e5"))
+    assert ann == annotate_pgn(_pgn("1. a3 e5"))  # deterministic
+    assert ann.theory_exit_ply == 1
+    assert ann.name is None
+
+
+def test_annotate_empty_pgn():
+    ann = annotate_pgn("")
+    assert ann.theory_exit_ply is None and ann.name is None
+
+
+def test_backfill_fills_opening_columns(tmp_path):
+    pgn_file = tmp_path / "g.pgn"
+    pgn_file.write_text(_pgn("1. e4 c6 2. d4 d5 3. e5 e6", result="1-0"))
+
+    conn = connect(tmp_path / "db.sqlite")
+    migrate(conn)
+    # import without a book: name stays NULL and even ply 1 is "out of book"
+    import_pgn_file(conn, pgn_file, "A", None)
+    row = conn.execute("SELECT opening_name, theory_exit_ply FROM games").fetchone()
+    assert row["opening_name"] is None and row["theory_exit_ply"] == 1
+
+    updated = backfill_openings(conn, OpeningBook(load_openings([SAMPLE])))
+    assert updated == 1
+    row = conn.execute("SELECT opening_name, theory_exit_ply FROM games").fetchone()
+    assert row["opening_name"] == "Caro-Kann Defense: Advance Variation"
+    assert row["theory_exit_ply"] == 6
+    conn.close()
+
+
+def test_import_with_book_stores_opening(tmp_path):
+    pgn_file = tmp_path / "g.pgn"
+    pgn_file.write_text(_pgn("1. e4 c6 2. d4 d5 3. e5 e6", result="1-0"))
+
+    conn = connect(tmp_path / "db.sqlite")
+    migrate(conn)
+    import_pgn_file(conn, pgn_file, "A", OpeningBook(load_openings([SAMPLE])))
+    row = conn.execute("SELECT opening_name, opening_family, theory_exit_ply FROM games").fetchone()
+    assert row["opening_name"] == "Caro-Kann Defense: Advance Variation"
+    assert row["opening_family"] == "Caro-Kann Defense"
+    assert row["theory_exit_ply"] == 6
+    conn.close()
