@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T3.2 Single-game analysis
+- **Next task:** T3.3 Batch analysis, workers, resume
 - T1.3 is a **GATE**: awaiting a human real-fetch run (sandbox may block api.chess.com).
 
 ## Task board
@@ -21,7 +21,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
-| T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
+| T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
 | T3.4 | Benchmark | T3.3 | GATE | todo | | |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
@@ -71,6 +71,19 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T3.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/analyze.py: `AnalyzedMove`/`GameAnalysis` + `analyze_game(parsed, engine, config, theory_exit_ply)`. Pass 1 evaluates P0..PN once (terminal positions scored from the result, §8.3); pass 2 deepens every user move with win_drop ≥ 10 and overwrites that ply's values + `multipv_json`. No DB writes.
+- tests/test_analyze.py (engine): every ply has before/after evals; the blunder row has `multipv_json` with `pass2_multipv` entries; opponent plies have none; user moves classified; final `mate_after`/`win_after` come from the result.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q tests/test_analyze.py` → "3 passed in 9.12s" (real Stockfish; Fool's Mate fixture: both 1.f3 and 2.g4 get deepened, 2...e5 does not)
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T3.3 (Batch analysis, workers, resume)
 
 ### T4.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
