@@ -18,7 +18,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
-| T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
 | T3.1 | Engine wrapper | T0.2 | | todo | | |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
@@ -73,7 +73,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T2.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: cd06fdf
 What changed:
 - src/chesscoach/openings.py: `epd_of`, `opening_family`, `load_openings` (replays lichess TSVs; longest line reaching an EPD wins), `OpeningBook` (`from_dir`/`name_for_epd`), `eco_name_from_headers` fallback (§7.2), and `download_openings` (via the injectable `Transport`; `OpeningsError` prints manual-download instructions if blocked).
 - src/chesscoach/cli.py: `openings download` wired end-to-end.
