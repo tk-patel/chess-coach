@@ -16,7 +16,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T0.2 | Config + DB | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5700247 |
 | T0.3 | Fixtures | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 976e731 |
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
-| T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | |
+| T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
 | T1.3 | chess.com fetch | T1.1 | GATE | todo | | |
 | T2.1 | Openings DB | T0.2 | | todo | | |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
@@ -72,7 +72,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T1.2 handoff — Cody (deepseek-v4-pro) — 2026-10-09
 Status: done
-Commit: (below)
+Commit: 5de8eb3
 What changed:
 - src/chesscoach/importer.py: `compute_uuid` (sha1 of sorted headers + UCI movetext) and `import_pgn_file` (idempotent; skips games without the user and already-imported games).
 - src/chesscoach/cli.py: `import` command wired to load config, require the username, migrate, and import.
