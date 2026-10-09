@@ -1,0 +1,31 @@
+[player]
+username = "CHANGE_ME"          # chess.com username; compare case-insensitively everywhere
+
+[fetch]
+user_agent = "chess-coach/0.1 (personal use; contact: CHANGE_ME@example.com)"
+time_classes = ["bullet", "blitz", "rapid", "daily"]   # which games to keep
+rules = "chess"                  # skip chess960, bughouse, etc.
+rated_only = false
+
+[engine]
+path = "stockfish"
+threads_per_worker = 1
+hash_mb = 128
+workers = 4                      # parallel engine processes; default = CPU cores - 1 (min 1)
+pass1_depth = 14
+pass2_depth = 18
+pass2_multipv = 3
+
+[analysis]
+min_plies = 10                   # games shorter than this are stored but not analyzed
+opening_max_ply = 24             # "opening" phase upper bound when out of book earlier
+endgame_material = 26            # total non-pawn material on board (both sides) at or below → endgame
+
+[puzzles]
+min_drop = 20.0                  # user win% drop to qualify (i.e. mistake or blunder)
+min_best_winpct = 35.0           # there must have been something worth finding
+uniqueness_gap = 10.0            # best minus 2nd-best win% needed for a single-answer puzzle
+accept_within = 3.0              # any multipv move within this of best is accepted
+
+[report]
+min_games_opening = 15           # don't judge openings below this sample size
