@@ -5,9 +5,12 @@ wired in task by task. Every command currently exists as a stub so `--help`
 lists the full surface from PLAN.md §13.
 """
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
+
+from chesscoach import db
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -21,10 +24,36 @@ def _stub(name: str) -> None:
     typer.echo(f"{name}: not implemented")
 
 
+def _example_config_path() -> Path:
+    return Path(__file__).resolve().parents[2] / "config.example.toml"
+
+
 @app.command()
 def init() -> None:
     """Create data/, out/, the SQLite DB, and config.toml if missing."""
-    _stub("init")
+    root = Path.cwd()
+
+    config_path = root / "config.toml"
+    if config_path.exists():
+        typer.echo(f"config.toml already exists at {config_path}")
+    else:
+        example = _example_config_path()
+        if not example.exists():
+            typer.echo(f"error: cannot find example config at {example}", err=True)
+            raise typer.Exit(1)
+        config_path.write_text(example.read_text(), encoding="utf-8")
+        typer.echo(f"wrote {config_path} (edit your username there)")
+
+    for directory in ("data", "data/raw", "data/openings", "out"):
+        (root / directory).mkdir(parents=True, exist_ok=True)
+
+    db_path = root / "data" / "chesscoach.db"
+    conn = db.connect(db_path)
+    try:
+        version = db.migrate(conn)
+    finally:
+        conn.close()
+    typer.echo(f"initialized {db_path} (schema v{version})")
 
 
 @app.command()
