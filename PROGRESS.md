@@ -19,7 +19,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
 | T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
-| T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
 | T3.1 | Engine wrapper | T0.2 | | todo | | |
 | T3.2 | Single-game analysis (2 passes) | T3.1, T1.1, T2.2 | | todo | | |
 | T3.3 | Batch analysis, workers, resume | T3.2 | | todo | | |
@@ -73,7 +73,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T2.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: fcad03a
 What changed:
 - src/chesscoach/openings.py: `OpeningAnnotation` + `annotate_pgn` (§8.9 theory-exit replay, header fallback) + `backfill_openings(conn, book)`.
 - src/chesscoach/importer.py: `import_pgn_file` takes an optional `book` and stores opening_name/family/theory_exit_ply.
