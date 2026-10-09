@@ -5,8 +5,8 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T4.2 Wire classification into analysis (GATE)
-- T1.3 and T3.4 are **GATE**s awaiting owner review.
+- **Next task:** T5.1 Motif detectors + fixtures
+- T1.3, T3.4, T4.2 are **GATE**s awaiting owner review.
 
 ## Task board
 
@@ -25,7 +25,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 7b2d0e2 |
 | T3.4 | Benchmark | T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 667e9c2 |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
-| T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | todo | | |
+| T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T5.1 | Motif detectors + fixtures | T4.1 | | todo | | |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | todo | | |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | todo | | |
@@ -72,6 +72,21 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T4.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: review (GATE)
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/analyze.py: `game_totals` + `_side_accuracy`; `run_batch` now stores `user_accuracy`, `opp_accuracy`, `max_user_winpct`, `min_user_winpct` on the games row (per-side move accuracy excludes plies ≤ theory_exit_ply, §8.4).
+- tests/test_batch.py: exact `game_totals` numbers, theory-ply exclusion, persisted-to-games-row.
+- tests/test_analyze.py: engine test — every user move classified, accuracies in [0,100], max ≥ min.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "105 passed in 12.90s"
+- Scratch e2e (`analyze --reanalyze`) on a user game: games row `user_accuracy=12.36, opp_accuracy=99.80, max=53.40, min=43.50`; 0 user moves with NULL classification. Numbers make chess sense (the user blundered and was mated; the opponent played perfect moves).
+Deviations from PLAN: none
+Known issues / follow-ups: GATE — orchestrator should spot-check 3 games vs lichess analysis for sanity. Note: `moves.classification` was already populated in T3.2/T3.3 (classify.py existed early, D5); this task added the game-level aggregates.
+Next task: T5.1 (Motif detectors + fixtures)
 
 ### T3.4 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)

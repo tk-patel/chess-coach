@@ -24,6 +24,7 @@ import chess
 from chesscoach.classify import (
     INACCURACY,
     classify_move,
+    game_accuracy,
     low_clock,
     move_accuracy,
     phase,
@@ -317,6 +318,34 @@ def _since_timestamp(since: str) -> int:
     return int(datetime.strptime(since, "%Y-%m-%d").replace(tzinfo=UTC).timestamp())
 
 
+def _side_accuracy(rows: list[dict], theory_exit_ply: int | None) -> float | None:
+    """Mean move accuracy for one side, excluding plies ≤ theory_exit_ply (§8.4)."""
+    values = [
+        row["move_accuracy"]
+        for row in rows
+        if row.get("move_accuracy") is not None
+        and (theory_exit_ply is None or row["ply"] > theory_exit_ply)
+    ]
+    return game_accuracy(values) if values else None
+
+
+def game_totals(
+    move_dicts: list[dict], theory_exit_ply: int | None
+) -> dict:
+    """Game-level aggregates (§6 `games` columns) from analyzed move dicts."""
+    user_moves = [row for row in move_dicts if row["is_user"]]
+    opp_moves = [row for row in move_dicts if not row["is_user"]]
+    user_wins = [
+        row["win_before"] for row in user_moves if row.get("win_before") is not None
+    ]
+    return {
+        "user_accuracy": _side_accuracy(user_moves, theory_exit_ply),
+        "opp_accuracy": _side_accuracy(opp_moves, theory_exit_ply),
+        "max_user_winpct": max(user_wins) if user_wins else None,
+        "min_user_winpct": min(user_wins) if user_wins else None,
+    }
+
+
 def _reset_status(conn: sqlite3.Connection) -> None:
     conn.execute(
         "UPDATE games SET analysis_status = 'pending', analysis_error = NULL"
@@ -408,14 +437,27 @@ def run_batch(
 
     run = executor if executor is not None else _multiprocessing_executor(config)
     total = len(specs)
+    spec_by_uuid = {spec["uuid"]: spec for spec in specs}
     for done, item in enumerate(run(specs), start=1):
         uuid, status, rows, engine_id, error = item
         if status == "done":
             _write_moves(conn, uuid, rows)
+            totals = game_totals(rows, spec_by_uuid[uuid]["theory_exit_ply"])
             conn.execute(
                 "UPDATE games SET analysis_status = 'done', analysis_error = NULL,"
-                " engine_id = ?, pass1_depth = ?, pass2_depth = ? WHERE uuid = ?",
-                (engine_id, config.engine.pass1_depth, config.engine.pass2_depth, uuid),
+                " engine_id = ?, pass1_depth = ?, pass2_depth = ?,"
+                " user_accuracy = ?, opp_accuracy = ?,"
+                " max_user_winpct = ?, min_user_winpct = ? WHERE uuid = ?",
+                (
+                    engine_id,
+                    config.engine.pass1_depth,
+                    config.engine.pass2_depth,
+                    totals["user_accuracy"],
+                    totals["opp_accuracy"],
+                    totals["max_user_winpct"],
+                    totals["min_user_winpct"],
+                    uuid,
+                ),
             )
             result.analyzed += 1
             result.engine_id = engine_id

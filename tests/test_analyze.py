@@ -1,11 +1,12 @@
 """Single-game analysis tests (T3.2) — engine-marked."""
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
 
-from chesscoach.analyze import analyze_game
+from chesscoach.analyze import analyze_game, game_totals
 from chesscoach.config import load_config
 from chesscoach.engine import Engine
 from chesscoach.parse import parse_game
@@ -83,3 +84,17 @@ def test_final_position_mate_after_from_result(engine):
     assert last.san == "Qh4#"
     assert last.mate_after == -1  # the user was mated
     assert last.win_after == 0.0
+
+
+def test_game_totals_within_range(engine):
+    config = load_config(EXAMPLE)
+    parsed = parse_game(FOOLS_MATE, "User")
+    analysis = analyze_game(parsed, engine, config)
+
+    totals = game_totals([asdict(m) for m in analysis.moves], theory_exit_ply=None)
+    assert totals["user_accuracy"] is not None
+    assert 0.0 <= totals["user_accuracy"] <= 100.0
+    assert totals["opp_accuracy"] is not None
+    assert 0.0 <= totals["opp_accuracy"] <= 100.0
+    assert totals["max_user_winpct"] >= totals["min_user_winpct"]
+    assert all(m.classification is not None for m in analysis.moves if m.is_user)

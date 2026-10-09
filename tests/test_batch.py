@@ -4,7 +4,7 @@ from pathlib import Path
 
 import chess
 
-from chesscoach.analyze import run_batch
+from chesscoach.analyze import game_totals, run_batch
 from chesscoach.config import load_config
 from chesscoach.db import connect, migrate
 from chesscoach.importer import import_pgn_file
@@ -171,4 +171,59 @@ def test_limit_selects_oldest_first(tmp_path):
     result = run_batch(conn, config, limit=2, executor=record)
     assert result.analyzed == 2
     assert seen == expected[:2]
+    conn.close()
+
+
+# --- T4.2 game-level aggregates --------------------------------------------
+
+
+def _row(ply: int, is_user: bool, accuracy: float, win_before: float) -> dict:
+    return {
+        "ply": ply,
+        "color": "white" if ply % 2 else "black",
+        "is_user": is_user,
+        "san": "e4",
+        "uci": "e2e4",
+        "fen_before": chess.Board().fen(),
+        "move_accuracy": accuracy,
+        "win_before": win_before,
+    }
+
+
+def test_game_totals_exact():
+    rows = [
+        _row(1, True, 100.0, 55.0),
+        _row(2, False, 80.0, 45.0),
+        _row(3, True, 90.0, 60.0),
+        _row(4, False, 70.0, 40.0),
+    ]
+    totals = game_totals(rows, theory_exit_ply=None)
+    assert totals["user_accuracy"] == 95.0   # (100 + 90) / 2
+    assert totals["opp_accuracy"] == 75.0    # (80 + 70) / 2
+    assert totals["max_user_winpct"] == 60.0
+    assert totals["min_user_winpct"] == 55.0
+
+
+def test_game_totals_excludes_theory_plies():
+    rows = [_row(1, True, 100.0, 55.0), _row(3, True, 90.0, 60.0)]
+    totals = game_totals(rows, theory_exit_ply=1)  # drop ply 1
+    assert totals["user_accuracy"] == 90.0
+
+
+def test_totals_persisted_to_games_row(tmp_path):
+    conn = _db(tmp_path)
+    _import_games(conn, tmp_path, 1)
+    config = load_config(EXAMPLE)
+    rows = [_row(1, True, 100.0, 55.0), _row(3, True, 90.0, 60.0)]
+
+    def ex(specs):
+        for spec in specs:
+            yield (spec["uuid"], "done", rows, "FakeEngine", None)
+
+    run_batch(conn, config, executor=ex)
+    row = conn.execute(
+        "SELECT user_accuracy, opp_accuracy, max_user_winpct, min_user_winpct FROM games"
+    ).fetchone()
+    assert row["user_accuracy"] is not None and 0.0 <= row["user_accuracy"] <= 100.0
+    assert row["max_user_winpct"] == 60.0 and row["min_user_winpct"] == 55.0
     conn.close()
