@@ -98,3 +98,21 @@ def test_game_totals_within_range(engine):
     assert 0.0 <= totals["opp_accuracy"] <= 100.0
     assert totals["max_user_winpct"] >= totals["min_user_winpct"]
     assert all(m.classification is not None for m in analysis.moves if m.is_user)
+
+
+def test_motifs_wired_for_bad_user_moves(engine):
+    config = load_config(EXAMPLE)
+    parsed = parse_game(FOOLS_MATE, "User")
+    analysis = analyze_game(parsed, engine, config)
+
+    bad = [
+        m for m in analysis.moves
+        if m.classification in {"inaccuracy", "mistake", "blunder"}
+    ]
+    assert bad, "the Fool's Mate user moves should include an inaccuracy-or-worse"
+    for move in bad:  # every qualifying user move has ≥1 tag (§10 AC)
+        assert move.motifs_json is not None
+        assert json.loads(move.motifs_json)
+
+    # opponent plies never get motifs
+    assert all(m.motifs_json is None for m in analysis.moves if not m.is_user)

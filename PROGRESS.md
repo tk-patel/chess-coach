@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T5.2 Wire motifs into analysis
+- **Next task:** T6.1 Puzzle selection + export (GATE)
 - T1.3, T3.4, T4.2 are **GATE**s awaiting owner review.
 
 ## Task board
@@ -27,7 +27,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
 | T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | b59ce8a |
 | T5.1 | Motif detectors + fixtures | T4.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 55f0536 |
-| T5.2 | Wire motifs into analysis | T5.1, T4.2 | | todo | | |
+| T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | todo | | |
 | T7.1 | stats.py | T4.2, T5.2 | | todo | | |
 | T7.2 | charts.py | T7.1 | | todo | | |
@@ -72,6 +72,20 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T5.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/analyze.py: `AnalyzedMove.motifs_json` field; pass 2 now captures the post-move PV as `reply_pv` and calls `detect_motifs` for user moves classified inaccuracy/mistake/blunder (§10). Only those qualify.
+- tests/test_analyze.py: every inaccuracy-or-worse user move has a non-empty motifs list; opponent plies have none.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q tests/test_analyze.py` → "5 passed in 13.83s"
+- Scratch e2e (`analyze --reanalyze`) on a user game: `1. f3 → ["positional"]` (inaccuracy), `2. g4 → ["allowed_mate"]` (blunder, mate in 1 next), `2...e5 → NULL`. Tags make chess sense.
+Deviations from PLAN: none
+Known issues / follow-ups: heuristics (labelled in UI later).
+Next task: T6.1 (Puzzle selection + export, GATE)
 
 ### T5.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done

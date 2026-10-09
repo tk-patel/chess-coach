@@ -33,6 +33,7 @@ from chesscoach.classify import (
 )
 from chesscoach.config import Config
 from chesscoach.engine import Engine
+from chesscoach.motifs import detect_motifs
 from chesscoach.parse import ParsedGame, parse_game
 
 
@@ -66,6 +67,7 @@ class AnalyzedMove:
     classification: str | None
     phase: str
     low_clock: int | None
+    motifs_json: str | None = None
 
 
 @dataclass
@@ -230,6 +232,7 @@ def analyze_game(
         board_after.push_uci(move.uci)
         after_lines = engine.evaluate(board_after, depth=depths.pass2_depth, pov=pov)
         after = _line_eval(after_lines[0])
+        reply_pv = list(after_lines[0].pv_uci)
 
         drop = win_drop(best["win"], after["win"])
         is_best = move.uci == best["best_uci"]
@@ -246,6 +249,19 @@ def analyze_game(
         row.pv_uci = best["pv_uci"]
         row.multipv_json = _multipv_json(lines)
         row.classification = classify_move(drop, is_best, best["win"], after["win"])
+
+        # §10: motifs only for inaccuracy-or-worse user moves.
+        if row.classification in {"inaccuracy", "mistake", "blunder"}:
+            motifs = detect_motifs(
+                board_before,
+                move.uci,
+                best_pv=list(lines[0].pv_uci),
+                reply_pv=reply_pv,
+                mate_before=best["mate"],
+                mate_after=after["mate"],
+                low_clock=bool(row.low_clock),
+            )
+            row.motifs_json = json.dumps(motifs)
 
     return GameAnalysis(
         moves=rows,
