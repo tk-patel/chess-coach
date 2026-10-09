@@ -25,7 +25,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T3.3 | Batch analysis, workers, resume | T3.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 7b2d0e2 |
 | T3.4 | Benchmark | T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 667e9c2 |
 | T4.1 | classify.py (pure math) | T0.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | bee4581 |
-| T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T4.2 | Wire classification into analysis | T4.1, T3.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | b59ce8a |
 | T5.1 | Motif detectors + fixtures | T4.1 | | todo | | |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | todo | | |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T4.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)
-Commit: <filled by docs commit>
+Commit: b59ce8a
 What changed:
 - src/chesscoach/analyze.py: `game_totals` + `_side_accuracy`; `run_batch` now stores `user_accuracy`, `opp_accuracy`, `max_user_winpct`, `min_user_winpct` on the games row (per-side move accuracy excludes plies ≤ theory_exit_ply, §8.4).
 - tests/test_batch.py: exact `game_totals` numbers, theory-ply exclusion, persisted-to-games-row.
