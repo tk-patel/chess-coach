@@ -77,7 +77,26 @@ def fetch() -> None:
 @app.command("import")
 def import_(file: Annotated[str, typer.Argument(help="Path to a PGN file")]) -> None:
     """Import a PGN file as an alternative/extra input."""
-    _stub(f"import {file}")
+    from chesscoach.config import load_config, require_username
+    from chesscoach.importer import import_pgn_file
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+    username = require_username(config)
+
+    db_path = root / "data" / "chesscoach.db"
+    conn = db.connect(db_path)
+    try:
+        db.migrate(conn)
+        result = import_pgn_file(conn, Path(file), username)
+    finally:
+        conn.close()
+
+    typer.echo(
+        f"imported {result.imported} games, "
+        f"skipped {result.skipped_existing} existing, "
+        f"{result.skipped_no_user} without user"
+    )
 
 
 @app.command()

@@ -16,7 +16,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T0.2 | Config + DB | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5700247 |
 | T0.3 | Fixtures | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 976e731 |
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
-| T1.2 | PGN import command | T1.1 | | todo | | |
+| T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | |
 | T1.3 | chess.com fetch | T1.1 | GATE | todo | | |
 | T2.1 | Openings DB | T0.2 | | todo | | |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | todo | | |
@@ -69,6 +69,21 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T1.2 handoff — Cody (deepseek-v4-pro) — 2026-10-09
+Status: done
+Commit: (below)
+What changed:
+- src/chesscoach/importer.py: `compute_uuid` (sha1 of sorted headers + UCI movetext) and `import_pgn_file` (idempotent; skips games without the user and already-imported games).
+- src/chesscoach/cli.py: `import` command wired to load config, require the username, migrate, and import.
+- tests/test_importer.py + test_cli.py: idempotency, metadata, user filtering, uuid stability, and CLI end-to-end.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q` → "50 passed in 0.34s"
+- `python -m chesscoach import sample_games.pgn` run twice: run 1 "imported 1 games, 5 without user", run 2 "imported 0 games, skipped 1 existing"; DB holds 1 game / 33 moves both times.
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T1.3 (chess.com fetch) — GATE
 
 ### T1.1 handoff — Cody (deepseek-v4-pro) — 2026-10-09
 Status: done
