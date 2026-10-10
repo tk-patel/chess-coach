@@ -33,7 +33,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
 | T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 661ef8e |
-| T9.1 | update + status commands | T8.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T9.1 | update + status commands | T8.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cf52d86 |
 | T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
 
 Tasks that can run in parallel once their deps are done: T2.1, T3.1 and T4.1 depend only on
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T9.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: cf52d86
 What changed:
 - src/chesscoach/cli.py: real `status` (games by analysis_status, puzzles, last fetch time, engine id) and `update` (fetch → analyze → puzzles → report, each step best-effort so cron never dies on a blocked network). Removed the now-unused `_stub` helper; added the datetime import.
 - tests/test_cli.py: `status` and offline `update` tests (fetch transport stubbed to 404 → "fetch skipped", report pages written).
