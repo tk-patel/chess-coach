@@ -33,7 +33,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 661ef8e |
 | T9.1 | update + status commands | T8.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cf52d86 |
-| T9.2 | Home-server setup docs | T9.1 | GATE (final) | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T9.2 | Home-server setup docs | T9.1 | GATE (final) | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 1ec56c0 |
 
 Tasks that can run in parallel once their deps are done: T2.1, T3.1 and T4.1 depend only on
 the foundation and are good tasks for trying different models side by side.
@@ -74,7 +74,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T9.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE, final)
-Commit: <filled by docs commit>
+Commit: 1ec56c0
 What changed:
 - README.md: full "Home-server setup (Ubuntu, from scratch)" — apt packages (python3.11/venv, stockfish, git), clone + venv + `pip install -e .`, `init` + config notes (username, workers = cores-1), `openings download` (+ manual fallback), first `fetch`/`import`, `analyze`/`puzzles`/`report`; a nightly **cron** line using the venv's absolute python; **serving `out/` on the LAN** via `python -m http.server`, nginx and Caddy snippets; a **backup** section (`sqlite3 .backup` of `data/chesscoach.db` + restore); a command-reference table and notes (lichess-style accuracy, heuristic motifs, never commit config/data/out, never enter the chess.com password).
 How I verified (from-scratch recipe executed end to end in an empty dir /tmp/fresh):
