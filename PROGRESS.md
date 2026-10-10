@@ -32,7 +32,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cb55d3d |
 | T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
 | T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
-| T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 661ef8e |
 | T9.1 | update + status commands | T8.1 | | todo | | |
 | T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
 
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T8.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)
-Commit: <filled by docs commit>
+Commit: 661ef8e
 What changed:
 - src/chesscoach/templates/trainer.html: self-contained page (inline CSS + JS, no external assets). Puzzle JSON inlined in `<script type="application/json" id="puzzles">`. 8x8 SVG board with Unicode glyphs, oriented to the user's colour, edge coordinates; click-piece-then-square with a Q/R/B/N promotion chooser; guesses checked by UCI string compare against `accepted` (no JS legality engine). Shows solution_san / line_san / motifs / opening / date / game link after solving. Leitner boxes 1–5 (intervals 0/1/3/7/21 d), state in localStorage `chesscoach.srs.v1` (guarded try/catch); correct-first-try → box+1, wrong/revealed → box 1. Queue = due (box asc, oldest due first) then new (largest win_drop). Filters: motif / phase / low_clock / time window; `#motif=<tag>` hash; Export/Import progress buttons.
 - src/chesscoach/report.py: `render_report` now also renders `trainer.html` from the live DB (`select_puzzles`), so it stays in sync. Report now writes 5 pages.
