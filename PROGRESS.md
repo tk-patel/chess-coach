@@ -30,7 +30,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
 | T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cb55d3d |
-| T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
 | T7.3 | Report templates + command | T7.2 | | todo | | |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | todo | | |
 | T9.1 | update + status commands | T8.1 | | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T7.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: b71a68c
 What changed:
 - src/chesscoach/charts.py: generic `bar_chart`, `grouped_bar`, `line_chart`, `multi_line_chart` + report wrappers `rating_charts`, `accuracy_chart`, `phase_chart`, `clock_chart`, `motif_chart`, `time_chart`. Transparent background, neutral-grey text so charts read on light and dark themes; consistent palette.
 - tests/test_charts.py: every chart returns inline SVG; empty data returns a graceful "no data" SVG; no external image/URL references.
