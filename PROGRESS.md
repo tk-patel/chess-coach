@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T9.1 update + status commands
+- **Next task:** T9.2 Home-server setup docs (GATE, final)
 - GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1, T8.1.
 
 ## Task board
@@ -33,7 +33,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
 | T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 661ef8e |
-| T9.1 | update + status commands | T8.1 | | todo | | |
+| T9.1 | update + status commands | T8.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
 
 Tasks that can run in parallel once their deps are done: T2.1, T3.1 and T4.1 depend only on
@@ -72,6 +72,19 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T9.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/cli.py: real `status` (games by analysis_status, puzzles, last fetch time, engine id) and `update` (fetch → analyze → puzzles → report, each step best-effort so cron never dies on a blocked network). Removed the now-unused `_stub` helper; added the datetime import.
+- tests/test_cli.py: `status` and offline `update` tests (fetch transport stubbed to 404 → "fetch skipped", report pages written).
+How I verified:
+- `ruff check .` → "All checks passed!"; `pytest -q` → "211 passed in 22.76s".
+- Scratch e2e: `status` → games 1 / done 1 / puzzles 1 / last fetch never / engine Stockfish 17.1. `update` (username temporarily CHANGE_ME) → "fetch skipped … / analyze: 0 games / update done: 0 analyzed, 1 puzzles, 5 pages".
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T9.2 (Home-server setup docs, final GATE)
 
 ### T8.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)

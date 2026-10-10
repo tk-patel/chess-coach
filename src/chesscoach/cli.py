@@ -5,6 +5,7 @@ wired in task by task. Every command currently exists as a stub so `--help`
 lists the full surface from PLAN.md §13.
 """
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -18,10 +19,6 @@ app = typer.Typer(
 )
 openings_app = typer.Typer(help="Openings database management.")
 app.add_typer(openings_app, name="openings")
-
-
-def _stub(name: str) -> None:
-    typer.echo(f"{name}: not implemented")
 
 
 def _example_config_path() -> Path:
@@ -66,7 +63,37 @@ def init() -> None:
 @app.command()
 def status() -> None:
     """Show counts: games by status, puzzles, last fetch, engine id."""
-    _stub("status")
+    from chesscoach.config import load_config
+
+    root = Path.cwd()
+    load_config(root / "config.toml")  # validate config exists/parses
+    conn = db.connect(root / "data" / "chesscoach.db")
+    try:
+        db.migrate(conn)
+        total = conn.execute("SELECT COUNT(*) n FROM games").fetchone()["n"]
+        by_status = conn.execute(
+            "SELECT analysis_status, COUNT(*) n FROM games"
+            " GROUP BY analysis_status ORDER BY analysis_status"
+        ).fetchall()
+        puzzles = conn.execute("SELECT COUNT(*) n FROM puzzles").fetchone()["n"]
+        last_fetch = conn.execute("SELECT MAX(fetched_at) t FROM archives").fetchone()["t"]
+        engine = conn.execute(
+            "SELECT engine_id FROM games WHERE engine_id IS NOT NULL"
+            " GROUP BY engine_id ORDER BY COUNT(*) DESC LIMIT 1"
+        ).fetchone()
+    finally:
+        conn.close()
+
+    typer.echo(f"games: {total}")
+    for row in by_status:
+        typer.echo(f"  {row['analysis_status']}: {row['n']}")
+    typer.echo(f"puzzles: {puzzles}")
+    if last_fetch:
+        when = datetime.fromtimestamp(last_fetch, tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
+        typer.echo(f"last fetch: {when}")
+    else:
+        typer.echo("last fetch: never")
+    typer.echo(f"engine: {engine['engine_id'] if engine else 'n/a'}")
 
 
 @openings_app.command()
@@ -222,4 +249,44 @@ def report() -> None:
 @app.command()
 def update() -> None:
     """Fetch, analyze, build puzzles, and render the report (for cron)."""
-    _stub("update")
+    from chesscoach.analyze import run_batch
+    from chesscoach.config import ConfigError, load_config, require_engine, require_username
+    from chesscoach.fetch import FetchError, RequestsTransport, fetch_all
+    from chesscoach.puzzles import rebuild
+    from chesscoach.report import render_report
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+    conn = db.connect(root / "data" / "chesscoach.db")
+    try:
+        db.migrate(conn)
+
+        # 1. fetch (best-effort: skip cleanly when offline or unconfigured)
+        try:
+            require_username(config)
+            transport = RequestsTransport(config.fetch.user_agent)
+            fetched = fetch_all(conn, config, transport, root / "data" / "raw", _load_book(root))
+            typer.echo(f"fetch: {fetched.inserted} new games ({fetched.filtered} filtered)")
+        except (ConfigError, FetchError) as exc:
+            typer.echo(f"fetch skipped: {exc}", err=True)
+
+        # 2. analyze
+        analyzed = 0
+        try:
+            require_engine(config)
+            result = run_batch(conn, config, book=_load_book(root), progress=typer.echo)
+            analyzed = result.analyzed
+            typer.echo(f"analyze: {result.analyzed} games, {result.errors} errors")
+        except ConfigError as exc:
+            typer.echo(f"analyze skipped: {exc}", err=True)
+
+        # 3. puzzles
+        puzzles = rebuild(conn, config, root / "out" / "puzzles.json")
+        # 4. report (incl. trainer)
+        pages = render_report(conn, config, root / "out")
+    finally:
+        conn.close()
+
+    typer.echo(
+        f"update done: {analyzed} analyzed, {puzzles} puzzles, {len(pages)} pages"
+    )

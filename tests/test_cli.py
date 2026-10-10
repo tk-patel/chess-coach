@@ -10,7 +10,7 @@ runner = CliRunner()
 
 COMMANDS = ("init", "status", "fetch", "import", "analyze", "puzzles", "report", "update")
 
-STUBS = ("status", "update")
+STUBS = ()
 
 
 def test_help_lists_all_commands():
@@ -66,3 +66,40 @@ def test_puzzles_command_end_to_end(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "built 0 puzzles" in result.output
     assert (tmp_path / "out" / "puzzles.json").exists()
+
+
+def test_status_command(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert runner.invoke(app, ["init"]).exit_code == 0
+    result = runner.invoke(app, ["status"])
+    assert result.exit_code == 0, result.output
+    assert "games: 0" in result.output
+    assert "last fetch: never" in result.output
+    assert "puzzles: 0" in result.output
+
+
+def test_update_command_offline(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert runner.invoke(app, ["init"]).exit_code == 0
+
+    config_path = tmp_path / "config.toml"
+    config_path.write_text(config_path.read_text().replace("CHANGE_ME", "PaulMorphy"))
+
+    fixture = Path(__file__).resolve().parent / "fixtures" / "sample_games.pgn"
+    assert runner.invoke(app, ["import", str(fixture)]).exit_code == 0
+
+    # make the fetch step fail cleanly (no network in tests)
+    from chesscoach import fetch as fetch_mod
+
+    class _Offline:
+        def get(self, url, headers):
+            return fetch_mod.Response(404, {}, None, "")
+
+    monkeypatch.setattr(fetch_mod, "RequestsTransport", lambda ua: _Offline())
+
+    result = runner.invoke(app, ["update"])
+    assert result.exit_code == 0, result.output
+    assert "fetch skipped" in result.output
+    assert "update done:" in result.output
+    assert (tmp_path / "out" / "trainer.html").exists()
+    assert (tmp_path / "out" / "index.html").exists()
