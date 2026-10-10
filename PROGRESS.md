@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T7.1 stats.py
+- **Next task:** T7.2 charts.py
 - GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1.
 
 ## Task board
@@ -29,7 +29,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T5.1 | Motif detectors + fixtures | T4.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 55f0536 |
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
-| T7.1 | stats.py | T4.2, T5.2 | | todo | | |
+| T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T7.2 | charts.py | T7.1 | | todo | | |
 | T7.3 | Report templates + command | T7.2 | | todo | | |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | todo | | |
@@ -72,6 +72,19 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T7.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/stats.py: `wilson_ci`; `basic_counts` (W/D/L overall/by color/by time class + score%), `rating_over_time`, `accuracy_over_time` (rolling 20-game mean), `blunder_rate_by_phase`, `blunder_rate_by_clock`, `motif_counts`, `time_vs_blunders`, `top_costly_moves` (20), `conversion_stats` (§8.8 failed conversions/100), `openings_table` (family + variation level, Wilson CI, median theory-exit), `games_table`, `top_issues` (≤5 ranked bullets), and `build_stats`.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q tests/test_stats.py` → "9 passed in 0.07s"; full suite "197 passed in 15.33s".
+- Hand-computed checks: Wilson CI (5/10 → 0.237–0.763; 0/10 → 0.000–0.278); phase blunder rates 25.0 / 100.0 / n-a; conversion 1/2 → 50.0; opening family avg accuracy 75.0.
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T7.2 (charts.py)
 
 ### T6.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE)
