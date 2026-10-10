@@ -48,7 +48,7 @@ stockfish --help | head -1     # confirm the engine runs
 
 ```sh
 cd ~                       # or wherever you keep projects
-git clone <your-repo-url> chess-coach
+git clone https://github.com/tk-patel/chess-coach.git chess-coach
 cd chess-coach
 python3.11 -m venv .venv
 . .venv/bin/activate
