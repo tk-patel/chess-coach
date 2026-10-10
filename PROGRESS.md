@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T7.2 charts.py
+- **Next task:** T7.3 Report templates + command
 - GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1.
 
 ## Task board
@@ -30,7 +30,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T5.2 | Wire motifs into analysis | T5.1, T4.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 963b801 |
 | T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
 | T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cb55d3d |
-| T7.2 | charts.py | T7.1 | | todo | | |
+| T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T7.3 | Report templates + command | T7.2 | | todo | | |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | todo | | |
 | T9.1 | update + status commands | T8.1 | | todo | | |
@@ -72,6 +72,19 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T7.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/charts.py: generic `bar_chart`, `grouped_bar`, `line_chart`, `multi_line_chart` + report wrappers `rating_charts`, `accuracy_chart`, `phase_chart`, `clock_chart`, `motif_chart`, `time_chart`. Transparent background, neutral-grey text so charts read on light and dark themes; consistent palette.
+- tests/test_charts.py: every chart returns inline SVG; empty data returns a graceful "no data" SVG; no external image/URL references.
+How I verified:
+- `ruff check .` → "All checks passed!"
+- `pytest -q tests/test_charts.py` → "5 passed in 1.00s"
+Deviations from PLAN: none
+Known issues / follow-ups: none
+Next task: T7.3 (Report templates + command)
 
 ### T7.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
