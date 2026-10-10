@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **All tasks implemented.** GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1, T8.1, T9.2 (final).
+- **All tasks implemented.** GATEs awaiting owner review: T3.4, T4.2, T6.1, T8.1, T9.2 (final). T1.3 closed.
 
 ## Task board
 
@@ -16,7 +16,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T0.3 | Fixtures | T0.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 976e731 |
 | T1.1 | Parse PGN + metadata | T0.2, T0.3 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 0325998 |
 | T1.2 | PGN import command | T1.1 | | done | Cody (deepseek-v4-pro) 2026-10-09 | 5de8eb3 |
-| T1.3 | chess.com fetch | T1.1 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
+| T1.3 | chess.com fetch | T1.1 | GATE | done | Cody (deepseek-v4.1-flash) 2026-10-09 | e6f046e |
 | T2.1 | Openings DB | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cd06fdf |
 | T2.2 | Annotate games with openings | T2.1, T1.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | fcad03a |
 | T3.1 | Engine wrapper | T0.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 3a8f0b5 |
@@ -71,6 +71,11 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T1.3 GATE sign-off — owner (Tejas) — 2026-10-09
+Status: done — GATE closed
+Evidence: real `python -m chesscoach fetch` on the home server downloaded **883 games**.
+Next: analyze a window with `analyze --since YYYY-MM-DD` (owner chose ~30 days to start).
 
 ### T9.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: review (GATE, final)
