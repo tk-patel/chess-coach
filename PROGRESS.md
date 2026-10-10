@@ -31,7 +31,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
 | T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cb55d3d |
 | T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
-| T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
+| T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | todo | | |
 | T9.1 | update + status commands | T8.1 | | todo | | |
 | T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
@@ -75,7 +75,7 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ### T7.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
-Commit: <filled by docs commit>
+Commit: 9eee03d
 What changed:
 - src/chesscoach/report.py: `render_report` (Jinja2, 4 pages), `report_meta` (engine/depths/generation time for the footer), `build_charts`.
 - src/chesscoach/templates/: base.html (light/dark via prefers-color-scheme, system font stack, responsive, no external assets) + overview.html, mistakes.html, openings.html (Wilson CI, small-sample greying, expandable variations), games.html (plain-JS column sort).
