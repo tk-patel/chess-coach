@@ -27,10 +27,10 @@
   svg#board { width:100%; height:auto; display:block; touch-action:manipulation; }
   .sq-light { fill:#eadfc8; } .sq-dark { fill:#b58863; }
   .sq-sel { fill:var(--sel); }
-  .coord { font-size:11px; fill:var(--muted); }
+  .coord { font-size:11px; fill:var(--muted); pointer-events:none; }
   .glyph-w { fill:#fff; stroke:#333; stroke-width:1; }
   .glyph-b { fill:#111; stroke:#ddd; stroke-width:1; }
-  text.glyph { font-size:40px; text-anchor:middle; dominant-baseline:central; user-select:none; }
+  text.glyph { font-size:40px; text-anchor:middle; dominant-baseline:central; user-select:none; pointer-events:none; }
   .status { margin:12px 0; min-height:1.4em; font-weight:600; }
   .status.ok { color:var(--ok); } .status.bad { color:var(--bad); }
   .panel { background:var(--card); border:1px solid var(--line); border-radius:10px;
@@ -61,6 +61,10 @@
 
   <div id="boardwrap"><svg id="board" viewBox="0 0 440 440" aria-label="chess board"></svg></div>
   <div id="status" class="status"></div>
+  <div class="row">
+    <button id="reveal-top">Reveal solution</button>
+    <button id="next-top">Skip</button>
+  </div>
 
   <div id="promo" class="promo" hidden>
     <button data-p="q">Queen</button><button data-p="r">Rook</button>
@@ -171,8 +175,8 @@
       var pos2 = xy(f2, r2, flipped);
       var ch2 = map[sq2];
       var c = ch2 === ch2.toUpperCase() ? "glyph-w" : "glyph-b";
-      out += '<text class="glyph ' + c + '" x="' + (pos2.x + SQ / 2) + '" y="' + (pos2.y + SQ / 2 + 1) +
-             '">' + GLYPH[ch2] + "</text>";
+      out += '<text class="glyph ' + c + '" data-sq="' + sq2 + '" x="' + (pos2.x + SQ / 2) +
+             '" y="' + (pos2.y + SQ / 2 + 1) + '">' + GLYPH[ch2] + "</text>";
     }
     for (var i = 0; i < 8; i++) {
       var fL = flipped ? 7 - i : i;
@@ -303,6 +307,10 @@
     render(current.fen, current._flip);
   });
   document.getElementById("next").addEventListener("click", next);
+  document.getElementById("reveal-top").addEventListener("click", function () {
+    if (current) finish(false);
+  });
+  document.getElementById("next-top").addEventListener("click", next);
 
   // filters
   var motifSel = document.getElementById("f-motif");
