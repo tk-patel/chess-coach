@@ -10,7 +10,7 @@ from chesscoach.report import render_report
 EXAMPLE = Path(__file__).resolve().parents[1] / "config.example.toml"
 ATTR = re.compile(r'(?:src|href)="([^"]*)"')
 
-PAGES = ("index.html", "mistakes.html", "openings.html", "games.html")
+PAGES = ("index.html", "mistakes.html", "openings.html", "games.html", "trainer.html")
 
 
 def _db(tmp_path):
@@ -35,7 +35,7 @@ def _db(tmp_path):
     return conn
 
 
-def test_renders_four_pages(tmp_path):
+def test_renders_all_pages(tmp_path):
     conn = _db(tmp_path)
     out = tmp_path / "out"
     pages = render_report(conn, load_config(EXAMPLE), out)
@@ -65,7 +65,7 @@ def test_empty_db_still_renders(tmp_path):
     migrate(conn)
     out = tmp_path / "out"
     pages = render_report(conn, load_config(EXAMPLE), out)
-    assert len(pages) == 4
+    assert len(pages) == 5
     # the "no data" fallbacks appear
     assert "Not enough analyzed games" in (out / "index.html").read_text()
     conn.close()

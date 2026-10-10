@@ -1,12 +1,13 @@
 """Render the static HTML report — PLAN.md §12.
 
 `render_report` writes index.html / mistakes.html / openings.html / games.html
-into the output directory. Everything is offline: charts are inlined SVG, styles
+/ trainer.html into the output directory. Everything is offline: charts are inlined SVG, styles
 are in the page, the only external links are chess.com game URLs.
 """
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from chesscoach import charts
 from chesscoach.config import Config
+from chesscoach.puzzles import select_puzzles, strip_internal
 from chesscoach.stats import build_stats
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -93,4 +95,13 @@ def render_report(
         path = out / out_name
         path.write_text(html, encoding="utf-8")
         written.append(path)
+
+    # Trainer: self-contained page with the puzzle JSON inlined (section 11).
+    puzzles = [strip_internal(p) for p in select_puzzles(conn, config)]
+    trainer_html = env.get_template("trainer.html").render(
+        puzzles_json=json.dumps(puzzles)
+    )
+    trainer_path = out / "trainer.html"
+    trainer_path.write_text(trainer_html, encoding="utf-8")
+    written.append(trainer_path)
     return written
