@@ -5,7 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T7.3 Report templates + command
+- **Next task:** T8.1 Trainer page (GATE)
 - GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1.
 
 ## Task board
@@ -31,7 +31,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T6.1 | Puzzle selection + export | T5.2 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 659083d |
 | T7.1 | stats.py | T4.2, T5.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cb55d3d |
 | T7.2 | charts.py | T7.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | b71a68c |
-| T7.3 | Report templates + command | T7.2 | | todo | | |
+| T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | todo | | |
 | T9.1 | update + status commands | T8.1 | | todo | | |
 | T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
@@ -72,6 +72,21 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T7.3 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: done
+Commit: <filled by docs commit>
+What changed:
+- src/chesscoach/report.py: `render_report` (Jinja2, 4 pages), `report_meta` (engine/depths/generation time for the footer), `build_charts`.
+- src/chesscoach/templates/: base.html (light/dark via prefers-color-scheme, system font stack, responsive, no external assets) + overview.html, mistakes.html, openings.html (Wilson CI, small-sample greying, expandable variations), games.html (plain-JS column sort).
+- src/chesscoach/cli.py: `report` command wired end-to-end.
+- pyproject.toml: `templates/*.html` as package data.
+How I verified:
+- `ruff check .` → "All checks passed!"; `pytest -q` → "206 passed in 17.16s" (4 report tests).
+- Scratch e2e `python -m chesscoach report` → "wrote 4 pages"; every `src=`/`href=` http reference is absent or a chess.com game link (grep found none in this scratch game).
+Deviations from PLAN: none
+Known issues / follow-ups: the visual check at 375/1280 px was NOT done — no browser is available in this environment (the plan permits skipping when no browser is present). Trainer nav link 404s until T8.1.
+Next task: T8.1 (Trainer page, GATE)
 
 ### T7.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done

@@ -202,7 +202,21 @@ def puzzles() -> None:
 @app.command()
 def report() -> None:
     """Render the report and trainer HTML into out/."""
-    _stub("report")
+    from chesscoach.config import load_config
+    from chesscoach.report import render_report
+
+    root = Path.cwd()
+    config = load_config(root / "config.toml")
+
+    conn = db.connect(root / "data" / "chesscoach.db")
+    try:
+        db.migrate(conn)
+        pages = render_report(conn, config, root / "out")
+    finally:
+        conn.close()
+
+    names = ", ".join(p.name for p in pages)
+    typer.echo(f"wrote {len(pages)} pages to out/ ({names})")
 
 
 @app.command()

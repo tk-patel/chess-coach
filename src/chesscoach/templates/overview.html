@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Overview — chess-coach{% endblock %}
+{% block content %}
+<h1>Overview</h1>
+
+<section class="cards">
+  <div class="card"><div class="num">{{ stats.counts.games }}</div><div class="lbl">games</div></div>
+  <div class="card"><div class="num">{{ stats.counts.wdl.win }}/{{ stats.counts.wdl.draw }}/{{ stats.counts.wdl.loss }}</div><div class="lbl">win / draw / loss</div></div>
+  <div class="card"><div class="num">{{ stats.counts.overall.score_pct if stats.counts.overall.score_pct is not none else "—" }}%</div><div class="lbl">overall score</div></div>
+</section>
+
+<h2>Top issues</h2>
+<ul class="issues">
+{% for issue in stats.top_issues %}
+  <li>{{ issue }}</li>
+{% else %}
+  <li class="small-sample">Not enough analyzed games yet — import and analyze some games first.</li>
+{% endfor %}
+</ul>
+
+<h2>By colour</h2>
+<div class="wrap">
+<table>
+  <thead><tr><th>Colour</th><th>Games</th><th>W</th><th>D</th><th>L</th><th>Score %</th></tr></thead>
+  <tbody>
+  {% for colour, b in stats.counts.by_color.items() %}
+    <tr>
+      <td>{{ colour }}</td><td>{{ b.games }}</td>
+      <td>{{ b.win }}</td><td>{{ b.draw }}</td><td>{{ b.loss }}</td>
+      <td>{{ b.score_pct if b.score_pct is not none else "—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2>By time class</h2>
+<div class="wrap">
+<table>
+  <thead><tr><th>Time class</th><th>Games</th><th>W</th><th>D</th><th>L</th><th>Score %</th></tr></thead>
+  <tbody>
+  {% for tc, b in stats.counts.by_time_class.items() %}
+    <tr>
+      <td>{{ tc }}</td><td>{{ b.games }}</td>
+      <td>{{ b.win }}</td><td>{{ b.draw }}</td><td>{{ b.loss }}</td>
+      <td>{{ b.score_pct if b.score_pct is not none else "—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2>Rating over time</h2>
+<div class="chart">{{ charts.rating|safe }}</div>
+
+<h2>Accuracy over time <span class="ci">(rolling 20-game mean)</span></h2>
+<div class="chart">{{ charts.accuracy|safe }}</div>
+
+<p><a href="trainer.html">Open the puzzle trainer →</a></p>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Mistakes — chess-coach{% endblock %}
+{% block content %}
+<h1>Mistakes</h1>
+
+<h2>By phase</h2>
+<div class="wrap">
+<table>
+  <thead><tr><th>Phase</th><th>User moves</th><th>Mistakes+blunders</th><th>Per 100</th></tr></thead>
+  <tbody>
+  {% for ph, b in stats.phase.items() %}
+    <tr>
+      <td>{{ ph }}</td><td>{{ b.moves }}</td><td>{{ b.bad }}</td>
+      <td>{% if b.per_100 is not none %}{{ b.per_100 }}{% elif b.moves %}<span class="small-sample">small sample</span>{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div class="chart">{{ charts.phase|safe }}</div>
+
+<h2>Time trouble</h2>
+<div class="chart">{{ charts.clock|safe }}</div>
+<table>
+  <thead><tr><th>When</th><th>User moves</th><th>Per 100</th></tr></thead>
+  <tbody>
+    <tr><td>low clock</td><td>{{ stats.clock.low_clock.moves }}</td><td>{{ stats.clock.low_clock.per_100 if stats.clock.low_clock.per_100 is not none else "—" }}</td></tr>
+    <tr><td>normal</td><td>{{ stats.clock.normal.moves }}</td><td>{{ stats.clock.normal.per_100 if stats.clock.normal.per_100 is not none else "—" }}</td></tr>
+  </tbody>
+</table>
+
+<h2>Motifs <span class="ci">(heuristic tags)</span></h2>
+<div class="chart">{{ charts.motifs|safe }}</div>
+<div>
+{% for tag, count in stats.motifs.items() %}
+  <a class="tag" href="trainer.html#motif={{ tag }}">{{ tag.replace('_', ' ') }} {{ count }}</a>
+{% endfor %}
+</div>
+
+<h2>Time spent per move vs blunders</h2>
+<div class="chart">{{ charts.time|safe }}</div>
+
+<h2>Most costly moves</h2>
+<div class="wrap">
+<table>
+  <thead>
+    <tr><th>Date</th><th>Opening</th><th>Move</th><th>Best</th><th>Drop</th><th>Phase</th><th>Motifs</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for m in stats.top_costly %}
+    <tr>
+      <td>{{ m.date }}</td>
+      <td>{{ m.opening or "—" }}</td>
+      <td>{{ m.san }}</td>
+      <td>{{ m.best_san or "—" }}</td>
+      <td>{{ m.win_drop }}</td>
+      <td>{{ m.phase }}</td>
+      <td>{% for tag in m.motifs %}<span class="tag">{{ tag.replace('_',' ') }}</span>{% endfor %}</td>
+      <td>{% if m.game_url %}<a href="{{ m.game_url }}">game</a>{% endif %}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="small-sample">No analyzed mistakes yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

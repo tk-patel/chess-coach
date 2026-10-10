@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Openings — chess-coach{% endblock %}
+{% block content %}
+<h1>Openings</h1>
+<p class="ci">Score % carries a Wilson 95% interval. Families with fewer than
+{{ min_games }} games are greyed and never flagged.</p>
+
+{% for colour, families in stats.openings.items() %}
+  <h2>{{ colour|capitalize }}</h2>
+  {% if not families %}<p class="small-sample">No games with a known opening for {{ colour }}.</p>{% endif %}
+  {% for fam in families %}
+    {% set small = fam.games < min_games %}
+    <details {% if not small and fam.games >= min_games %}open{% endif %}>
+      <summary>
+        {{ fam.name }} — {{ fam.games }} games, score
+        {{ fam.score_pct if fam.score_pct is not none else "—" }}%
+        {% if small %}<span class="small-sample">(small sample)</span>{% endif %}
+      </summary>
+      <div class="wrap">
+      <table>
+        <thead><tr><th>Variation</th><th>Games</th><th>Score %</th><th>95% CI</th><th>Avg accuracy</th><th>Median exit ply</th><th>Common first mistake</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>{{ fam.name }}</strong> (all)</td>
+            <td>{{ fam.games }}</td>
+            <td>{{ fam.score_pct if fam.score_pct is not none else "—" }}</td>
+            <td class="ci">{% if fam.score_ci %}{{ fam.score_ci[0] }}–{{ fam.score_ci[1] }}%{% else %}—{% endif %}</td>
+            <td>{{ fam.avg_accuracy if fam.avg_accuracy is not none else "—" }}</td>
+            <td>{{ fam.median_exit_move if fam.median_exit_move is not none else "—" }}</td>
+            <td>{% if fam.common_first_mistake %}{{ fam.common_first_mistake.san }} ({{ fam.common_first_mistake.count }}×){% else %}—{% endif %}</td>
+          </tr>
+          {% for var in fam.variations %}
+          <tr>
+            <td>{{ var.name }}</td>
+            <td>{{ var.games }}</td>
+            <td>{{ var.score_pct if var.score_pct is not none else "—" }}</td>
+            <td class="ci">{% if var.score_ci %}{{ var.score_ci[0] }}–{{ var.score_ci[1] }}%{% else %}—{% endif %}</td>
+            <td>{{ var.avg_accuracy if var.avg_accuracy is not none else "—" }}</td>
+            <td>{{ var.median_exit_move if var.median_exit_move is not none else "—" }}</td>
+            <td>{% if var.common_first_mistake %}{{ var.common_first_mistake.san }} ({{ var.common_first_mistake.count }}×){% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </details>
+  {% endfor %}
+{% endfor %}
+{% endblock %}

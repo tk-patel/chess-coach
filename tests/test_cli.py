@@ -10,7 +10,7 @@ runner = CliRunner()
 
 COMMANDS = ("init", "status", "fetch", "import", "analyze", "puzzles", "report", "update")
 
-STUBS = ("status", "report", "update")
+STUBS = ("status", "update")
 
 
 def test_help_lists_all_commands():

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}chess-coach{% endblock %}</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1c1c1e; --muted: #6b6b70; --card: #f4f4f6;
+    --line: #e2e2e6; --accent: #4a78c2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121316; --fg: #e8e8ea; --muted: #9a9aa2; --card: #1d1e22;
+      --line: #2b2c31; --accent: #7aa2e3;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  header, main, footer { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 18px; }
+  h1 { font-size: 1.5rem; margin: .2rem 0 1rem; }
+  h2 { font-size: 1.15rem; margin: 1.6rem 0 .6rem; }
+  h3 { font-size: 1rem; margin: 1rem 0 .4rem; }
+  nav a { color: var(--accent); text-decoration: none; margin-right: 14px; }
+  nav a.active { font-weight: 700; text-decoration: underline; }
+  a { color: var(--accent); }
+  .cards { display: flex; flex-wrap: wrap; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 12px 16px; min-width: 130px; }
+  .card .num { font-size: 1.4rem; font-weight: 700; }
+  .card .lbl { color: var(--muted); font-size: .85rem; }
+  ul.issues { padding-left: 1.1rem; }
+  ul.issues li { margin: .35rem 0; }
+  .chart { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 8px; margin: 8px 0; overflow-x: auto; }
+  .chart svg { max-width: 100%; height: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { color: var(--accent); }
+  .small-sample { color: var(--muted); }
+  .tag { display: inline-block; background: var(--card); border: 1px solid var(--line);
+         border-radius: 6px; padding: 0 6px; margin: 0 2px; font-size: .8rem; }
+  .ci { color: var(--muted); font-size: .85rem; }
+  details { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  footer { color: var(--muted); font-size: .82rem; padding: 24px 16px 40px; }
+  .wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>chess-coach</h1>
+  <nav>
+    <a href="index.html" {% if page == 'index.html' %}class="active"{% endif %}>Overview</a>
+    <a href="mistakes.html" {% if page == 'mistakes.html' %}class="active"{% endif %}>Mistakes</a>
+    <a href="openings.html" {% if page == 'openings.html' %}class="active"{% endif %}>Openings</a>
+    <a href="games.html" {% if page == 'games.html' %}class="active"{% endif %}>Games</a>
+    <a href="trainer.html">Trainer</a>
+  </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+  Generated {{ meta.generated }} · {{ meta.analyzed }} games analyzed ·
+  engine {{ meta.engine_id }}
+  {% if meta.pass1_depth %}(d{{ meta.pass1_depth }}/d{{ meta.pass2_depth }}){% endif %}.
+  {{ meta.note }}
+</footer>
+</body>
+</html>
