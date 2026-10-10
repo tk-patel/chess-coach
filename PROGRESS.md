@@ -5,8 +5,7 @@ Read `AGENTS.md` → `PLAN.md` → this file. Update this file at the start and 
 Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, waiting for a human or the orchestrator) · `done`
 
 ## Current focus
-- **Next task:** T9.2 Home-server setup docs (GATE, final)
-- GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1, T8.1.
+- **All tasks implemented.** GATEs awaiting owner review: T1.3, T3.4, T4.2, T6.1, T8.1, T9.2 (final).
 
 ## Task board
 
@@ -34,7 +33,7 @@ Statuses: `todo` · `in_progress` · `blocked` · `review` (GATE tasks only, wai
 | T7.3 | Report templates + command | T7.2 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | 9eee03d |
 | T8.1 | Trainer page | T6.1, T7.3 | GATE | review | Cody (deepseek-v4.1-flash) 2026-10-09 | 661ef8e |
 | T9.1 | update + status commands | T8.1 | | done | Cody (deepseek-v4.1-flash) 2026-10-09 | cf52d86 |
-| T9.2 | Home-server setup docs | T9.1 | GATE (final) | todo | | |
+| T9.2 | Home-server setup docs | T9.1 | GATE (final) | review | Cody (deepseek-v4.1-flash) 2026-10-09 | |
 
 Tasks that can run in parallel once their deps are done: T2.1, T3.1 and T4.1 depend only on
 the foundation and are good tasks for trying different models side by side.
@@ -72,6 +71,18 @@ Use this table to compare models (GLM, Claude, others) on the same kind of work.
 
 ## Handoff notes
 (newest at top; use the template in AGENTS.md §5)
+
+### T9.2 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
+Status: review (GATE, final)
+Commit: <filled by docs commit>
+What changed:
+- README.md: full "Home-server setup (Ubuntu, from scratch)" — apt packages (python3.11/venv, stockfish, git), clone + venv + `pip install -e .`, `init` + config notes (username, workers = cores-1), `openings download` (+ manual fallback), first `fetch`/`import`, `analyze`/`puzzles`/`report`; a nightly **cron** line using the venv's absolute python; **serving `out/` on the LAN** via `python -m http.server`, nginx and Caddy snippets; a **backup** section (`sqlite3 .backup` of `data/chesscoach.db` + restore); a command-reference table and notes (lichess-style accuracy, heuristic motifs, never commit config/data/out, never enter the chess.com password).
+How I verified (from-scratch recipe executed end to end in an empty dir /tmp/fresh):
+- `init` -> `openings download` (5 files) -> `import sample_games.pgn` -> `analyze --limit 1` (Stockfish 17.1, 4.5s) -> `puzzles` -> `report` (5 pages) -> `status` (games 1/done 1, puzzles 0, last fetch never, engine Stockfish 17.1). All exit 0.
+- LAN serve: `http.server 8099 -d out` -> `curl /` = 200, `curl /trainer.html` = 200, `<title>Overview — chess-coach</title>`.
+Deviations from PLAN: none
+Known issues / follow-ups: GATE (final) — the owner should follow the README once on the actual home server. `<your-repo-url>` in the README is a placeholder to fill with the real remote.
+Next task: none — backlog only.
 
 ### T9.1 handoff — Cody (deepseek-v4.1-flash) — 2026-10-09
 Status: done
